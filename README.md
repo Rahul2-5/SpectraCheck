@@ -10,20 +10,20 @@ finding. This is a single-generator study, not proof of image authenticity.
 
 ## Current stage
 
-Phase 0 foundation and Phase 1 acquisition code are implemented. Phase 1 adds
-original-byte collection and a manifest; the team runs real downloads in Colab.
-Image processing, training, and the app belong to later phases. Read
-[AGENTS.md](AGENTS.md), the [Phase 1 report](reports/phase_1_report.md), and the PRD
-before proceeding. User policy: commit and push changes to `main` only.
+Phases 0-2 code is implemented: foundation, acquisition, then metadata audit and
+frozen group-preserving splits. The team still runs the real-data steps in Colab.
+Shared classifier preprocessing, training, and the app belong to later phases.
+Read [AGENTS.md](AGENTS.md), the [Phase 2 report](reports/phase_2_report.md), and the
+PRD before proceeding. User policy: commit and push changes to `main` only.
 
 ## What the folders are for
 
 | Path | Purpose |
 | --- | --- |
 | `config.yaml` | One place for experiment settings and Drive paths |
-| `src/aidetect/` | Shared code for configuration, seeds, hashes, and acquisition |
+| `src/aidetect/` | Shared configuration, acquisition, audit, and split code |
 | `tests/` | Small automatic checks that need no dataset or internet |
-| `scripts/` | Acquisition commands now; training/evaluation commands later |
+| `scripts/` | Acquisition, audit, and split commands; training/evaluation later |
 | `notebooks/colab_runner.ipynb` | Team's step-by-step runner in free Colab |
 | `app/` | Future local Streamlit demo |
 | `reports/` | Phase reports and, later, research results |
@@ -122,6 +122,74 @@ Streaming Parquet may transfer the full source, and resuming scans it again.
 If the upstream `main` revision changes, use the recorded commit in
 `dataset.revision` and a consistent config/output, or choose a fresh output folder.
 No research images have been downloaded by the local tests.
+
+## Phase 2: audit, duplicates, and frozen splits
+
+After the main Phase 1 download/checks, run only the Phase 2 notebook section.
+If Drive already has a complete collection, do not rerun acquisition just because
+the project gained new audit settings. The audit verifies the saved Phase 1
+manifest and file hashes while recording its own current configuration hash.
+
+```text
+python scripts/run_audit.py
+python scripts/make_splits.py
+```
+
+`run_audit.py` reads `data_root/main/` and does the following:
+
+- Checks original file integrity, format, dimensions, mode, byte size, estimated
+  JPEG quality, and perceptual hashes. Corrupt files stop the run.
+- Excludes images smaller than configured `image_size` before splitting, logging
+  every exclusion. Keeps every eligible AI image and samples equally many real
+  images. The configured minimum eligible AI count still applies.
+- Runs five-fold logistic-regression and depth-3-tree probes using **only** file
+  metadata. Balanced classes make the chance level 50%. Both mean accuracies must
+  be <= the configured threshold, initially 0.60.
+- If either fails, re-encodes both classes identically to RGB JPEG at the median
+  estimated real-image quality, 4:4:4, in a separate normalized folder. EXIF
+  orientation is applied before metadata is stripped. Original files stay intact.
+  Both probes run again; a remaining shortcut returns exit code 2 and blocks splits.
+- Groups exact and perceptually similar images using union-find. A Hamming
+  distance <= 4 links images; transitive chains remain one group. When encoding
+  changes, original and normalized duplicate relationships are both retained.
+
+The JPEG-quality value is a nearest-standard quantization-table estimate, not a
+record of the true encoding history. Table-matching residuals appear in the
+report. If the probe fails and no real JPEG quality can be estimated, the code
+records a blocked audit and waits for a supervisor decision; it does not invent
+a target quality. Passing these probes does not prove every shortcut is absent.
+
+Generated outputs:
+
+| Path | Purpose |
+| --- | --- |
+| `data_root/audit/original_audit.csv` | Full source-file measurements |
+| `data_root/audit/excluded.csv` | Undersized and excess-real exclusions with reasons |
+| `data_root/audit/active_manifest.csv` | Balanced usable files, paths relative to data_root, current hashes and group IDs |
+| `data_root/audit/audit_result.json` | Before/after probe scores and a verifiable pass/block gate |
+| `data_root/audit/normalized/` | Separate JPEG copies, created only when remediation is required |
+| `reports/audit_report.md`, `reports/audit_*.csv`, `reports/figures/audit_*.png` | Metadata tables, plots, decisions |
+| `data_root/splits.csv` | Immutable id/label/split/group_id assignments |
+| `artifacts/splits.sha256`, `artifacts/splits.json` | Split fingerprint and configuration/audit provenance |
+
+`make_splits.py` requires a passing audit for the current config and unchanged
+audited images. Each duplicate group stays together; train/val/test are
+70/15/15 within one percentage point and **each split is exactly class-balanced**.
+It uses SciPy integer allocation over group-size/class-count patterns because
+ordinary grouped-CV heuristics do not guarantee all those constraints together.
+If the group structure makes the requirements impossible, it stops explicitly.
+
+Once written, the split CSV, SHA-256 and provenance cannot be silently replaced.
+An identical rerun verifies and reuses them. Changed/partial records fail.
+Do not rerun the audit after sealing splits. A split hash change invalidates all
+downstream experiments. Never weaken the gate or separate duplicate groups just
+to make a run pass.
+
+Run the notebook's Phase 2 checks, review before/after scores and plots, and
+retain the actual split fingerprint/provenance. The final cell backs up audit
+reports and split records to Drive. Commit the actual `artifacts/splits.sha256`
+and `artifacts/splits.json` to `main` after team review. Local synthetic checks
+do not generate a fake research split hash in this repository.
 
 ## Reproducibility rules
 

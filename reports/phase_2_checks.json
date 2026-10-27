@@ -1,0 +1,40 @@
+{
+  "python": "3.13.5",
+  "direct_dependencies": {
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "pandas": "3.1.0",
+    "pyarrow": "26.0.0",
+    "pillow": "13.0.0",
+    "scikit-learn": "1.9.1",
+    "xgboost": "3.2.0",
+    "statsmodels": "0.15.0",
+    "imagehash": "4.3.2",
+    "matplotlib": "3.11.2",
+    "datasets": "5.1.0",
+    "huggingface-hub": "2.3.0",
+    "pyyaml": "6.0.3",
+    "joblib": "1.6.0",
+    "streamlit": "1.66.1",
+    "pytest": "9.1.1"
+  },
+  "config_sha256": "e4a9a9cc79e2419805307ffa6348ea1a88f6aec1a0684867f71ff72a176c8e5c",
+  "notebook_static_checks": "pass: syntax, clean outputs, unique IDs, main clone, seven future-phase TODOs",
+  "signature_checks": {
+    "scipy.optimize.milp": "(c, *, integrality=None, bounds=None, constraints=None, options=None)",
+    "scipy.optimize.LinearConstraint": "(A, lb=-inf, ub=inf, keep_feasible=False)",
+    "scipy.optimize.Bounds": "(lb=-inf, ub=inf, keep_feasible=False)",
+    "StratifiedKFold": "(n_splits=5, *, shuffle=False, random_state=None)",
+    "cross_val_score": "(estimator, X, y=None, *, groups=None, scoring=None, cv=None, n_jobs=None, verbose=0, params=None, pre_dispatch='2*n_jobs', error_score=nan)",
+    "LogisticRegression": "(penalty='deprecated', *, C=1.0, l1_ratio=0.0, dual=False, tol=0.0001, fit_intercept=True, intercept_scaling=1, class_weight=None, random_state=None, solver='lbfgs', max_iter=100, verbose=0, warm_start=False, n_jobs=None)",
+    "imagehash.phash": "(image, hash_size=8, highfreq_factor=4)",
+    "PIL.Image.Image.save": "(self, fp: 'StrOrBytesPath | IO[bytes]', format: 'str | None' = None, **params: 'Any') -> 'None'"
+  },
+  "real_dataset_audited": false,
+  "real_splits_frozen": false,
+  "sources_checked": [
+    "https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.milp.html",
+    "https://pillow.readthedocs.io/en/stable/handbook/image-file-formats.html",
+    "https://pillow.readthedocs.io/en/latest/reference/JpegPresets.html"
+  ]
+}

@@ -11,6 +11,8 @@ split:
 paths:
   data_root: /content/drive/MyDrive/aidetect/data
   features_root: /content/drive/MyDrive/aidetect/features
+  reports_root: reports
+  artifacts_root: artifacts
 dataset:
   main: TheKernel01/Tiny-GenImage
   generator_name: SD15
@@ -26,3 +28,14 @@ cv_folds: 5
 search_iters: 30
 alpha: 0.05
 batch_size: 500
+audit:
+  shortcut_max_accuracy: 0.60
+  probe_tree_depth: 3
+  probe_logistic_max_iter: 2000
+  phash_size: 8
+  duplicate_hamming_distance: 4
+  histogram_bins: 20
+  figure_dpi: 150
+splitting:
+  proportion_tolerance: 0.01
+  solver_time_limit_seconds: 60
