@@ -1,0 +1,42 @@
+{
+  "python": "3.12.1",
+  "numpy": "2.4.6",
+  "scipy": "1.17.1",
+  "pytest": "9.1.1",
+  "config_sha256": "fae16d16f5bc8891971219bc27a149e2fb4e2d4d8e2cddafe105ad07ae18fc10",
+  "default_feature_count": 68,
+  "default_feature_name_prefix": [
+    "energy_ratio",
+    "spectral_entropy"
+  ],
+  "default_feature_name_suffix": [
+    "peak_count",
+    "peak_strength"
+  ],
+  "tests": {
+    "focused_command": ".\\.venv\\Scripts\\python.exe -m pytest -q tests/test_features.py",
+    "focused_summary": "15 passed in 0.51s",
+    "full_command": ".\\.venv\\Scripts\\python.exe -m pytest -q",
+    "full_summary": "94 passed in 24.35s",
+    "failed": 0,
+    "skipped": 0
+  },
+  "pip_check": "No broken requirements found.",
+  "notebook_static_checks": {
+    "json": "pass",
+    "unique_ids": "pass",
+    "phase3_cell_syntax": "pass",
+    "phase4_cell_syntax": "pass",
+    "phase4_cell_lines": 64
+  },
+  "signature_checks": {
+    "numpy.fft.fft2": "(a, s=None, axes=(-2, -1), norm=None, out=None)",
+    "numpy.fft.fftshift": "(x, axes=None)",
+    "numpy.hanning": "(M)"
+  },
+  "executable_resize_search": "only src/aidetect/preprocess.py",
+  "real_colab_spectra_reviewed": false,
+  "real_feature_files_present": false,
+  "real_research_split_present": false,
+  "remote_ci_verified": false
+}

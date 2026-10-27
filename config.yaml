@@ -13,6 +13,10 @@ preprocess:
   undersized_policy: reject
   output_dtype: float64
   normalization_divisor: 255.0
+frequency:
+  hann_window: true
+  epsilon: 1.0e-12
+  mad_scale: 1.4826
 split:
   train: 0.70
   val: 0.15

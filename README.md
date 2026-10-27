@@ -10,11 +10,12 @@ finding. This is a single-generator study, not proof of image authenticity.
 
 ## Current stage
 
-Phases 0-3 code is implemented: foundation, acquisition, metadata audit and
-frozen group-preserving splits, then the shared image preprocessing contract.
+Phases 0-4 code is implemented: foundation, acquisition, metadata audit and
+frozen group-preserving splits, shared image preprocessing, and the handcrafted
+frequency feature module.
 The team still runs the real-data steps in Colab; no real research split or
-preprocessing review has been verified here. Training, features, and the app
-belong to later phases. Read [AGENTS.md](AGENTS.md), the [Phase 3 report](reports/phase_3_report.md), and the
+preprocessing review has been verified here. Training and the app belong to
+later phases. Read [AGENTS.md](AGENTS.md), the [Phase 4 report](reports/phase_4_report.md), and the
 PRD before proceeding. User policy: commit and push changes to `main` only.
 
 ## What the folders are for
@@ -86,6 +87,17 @@ than upscaling them. The fixed contract is recorded as `PREPROCESS_VERSION` in
 `src/aidetect/preprocess.py` and mirrored under `preprocess` in `config.yaml`.
 The Phase 3 notebook cell reviews 20 training images per class and reports
 undersized inputs; it does not inspect test rows or create features.
+
+## Phase 4: frequency features
+
+`aidetect.features` turns one Phase 3 array into a centered 2D FFT power
+spectrum, non-DC energy ratio, normalized spectral entropy, configurable-K
+log-RAPSD vector, and robust conjugate-pair-safe peak count/strength. The
+default configuration uses a fixed 2D Hann window, epsilon handling, and 64
+RAPSD rings, producing 68 finite values. The Phase 4 notebook cell is
+train-only: it samples 200 rows per class, saves mean log-spectrum and mean
+RAPSD figures with 95% bands under `reports/figures/`, and does not create
+features for validation or test rows.
 
 ## Phase 1: collect images in Colab
 
@@ -222,12 +234,11 @@ do not generate a fake research split hash in this repository.
 
 ## Remaining phases
 
-1. Frequency features.
-2. Pixel baseline and batched extraction.
-3. Fair training/tuning and primary-model selection.
-4. Freeze, single evaluation, and hypothesis tests.
-5. Local demo.
-6. Report pack and reproduction guide.
+1. Pixel baseline and batched extraction.
+2. Fair training/tuning and primary-model selection.
+3. Freeze, single evaluation, and hypothesis tests.
+4. Local demo.
+5. Report pack and reproduction guide.
 
 The user's updated Phase 8 choice is React. Planned folders are `app/frontend/`
 for the interface and `app/backend/` for the local Python API. The API will reuse
