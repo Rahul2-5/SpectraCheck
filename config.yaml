@@ -54,3 +54,40 @@ audit:
 splitting:
   proportion_tolerance: 0.01
   solver_time_limit_seconds: 60
+training:
+  r0:
+    min: 8
+    max: 120
+    step: 8
+  model_order: [svm, rf, xgb]
+  primary_model_tie_order: [svm, rf, xgb]
+  search_n_jobs: 1
+  estimator_n_jobs: 1
+  feature_importance_top_n: 15
+  feature_importance_dpi: 300
+  scoring: accuracy
+  legacy_phase5_config_hashes:
+    - 7ac0df38870f031ee724c7b9b1610d12b02890bd9fd2760adb1215facc498d0f
+  phase5_feature_contract_sha256: c92f2dc1292441ab73d65fb67a5a9e1ef63b3a79d2edf4e7764df17e489c47a9
+  calibration:
+    method: sigmoid
+  search_space:
+    svm:
+      C_loguniform: [0.01, 1000.0]
+      gamma_loguniform: [0.0001, 1.0]
+    rf:
+      n_estimators: [200, 800]
+      max_depth: [null, 5, 10, 20]
+      min_samples_leaf: [1, 10]
+      max_features: [sqrt, 0.3, 0.5]
+    xgb:
+      n_estimators: [200, 800]
+      max_depth: [2, 8]
+      learning_rate_uniform: [0.01, 0.3]
+      subsample_uniform: [0.6, 1.0]
+      colsample_bytree_uniform: [0.5, 1.0]
+    xgb_fixed:
+      objective: binary:logistic
+      eval_metric: logloss
+      tree_method: hist
+      verbosity: 0

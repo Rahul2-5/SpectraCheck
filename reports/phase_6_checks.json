@@ -1,0 +1,91 @@
+{
+  "phase": 6,
+  "status": "local_implementation_complete_real_data_pending",
+  "configuration": {
+    "active_sha256": "ce79d3ef5f012768bbc377db9cdd9226377a1449a13a7725d9d49189f3549dce",
+    "phase5_feature_contract_sha256": "c92f2dc1292441ab73d65fb67a5a9e1ef63b3a79d2edf4e7764df17e489c47a9",
+    "legacy_phase5_full_config_sha256": "7ac0df38870f031ee724c7b9b1610d12b02890bd9fd2760adb1215facc498d0f"
+  },
+  "environment": {
+    "python": "3.11.4",
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "scikit_learn": "1.9.1",
+    "xgboost": "3.2.0",
+    "joblib": "1.6.0"
+  },
+  "checks": [
+    {
+      "name": "Phase 6 focused tests",
+      "command": ".venv/Scripts/python.exe -m pytest -q tests/test_train.py",
+      "exit_code": 0,
+      "passed": 9,
+      "failed": 0,
+      "skipped": 0,
+      "actual_summary": "9 passed in 36.33s"
+    },
+    {
+      "name": "Full regression suite",
+      "command": "PowerShell: $env:PYTHONPATH = 'src' followed by .venv/Scripts/python.exe -m pytest -q",
+      "exit_code": 0,
+      "passed": 114,
+      "failed": 0,
+      "skipped": 0,
+      "actual_summary": "114 passed in 24.82s",
+      "context": "An initial run without PYTHONPATH had 1 failure and 113 passes because the venv did not have the project installed editable; the failing subprocess could not import aidetect. The README install command could not complete because sandbox network access was blocked, and the escalated retry failed certificate verification. The final regression run used PYTHONPATH=src so subprocess scripts could import the workspace source."
+    },
+    {
+      "name": "Dependency consistency",
+      "command": ".venv/Scripts/python.exe -m pip check",
+      "exit_code": 0,
+      "actual_summary": "No broken requirements found."
+    },
+    {
+      "name": "Syntax compilation",
+      "command": ".venv/Scripts/python.exe -m py_compile src/aidetect/train.py scripts/train_models.py tests/test_train.py",
+      "exit_code": 0,
+      "actual_summary": "Completed with no syntax errors."
+    },
+    {
+      "name": "Training command help",
+      "command": ".venv/Scripts/python.exe scripts/train_models.py --help",
+      "exit_code": 0,
+      "actual_summary": "Printed the --config usage and train/validation-only description."
+    },
+    {
+      "name": "Colab notebook validation",
+      "command": "Loaded notebooks/colab_runner.ipynb as JSON, checked unique cell IDs, and AST-parsed the Phase 3-6 code cells.",
+      "exit_code": 0,
+      "actual_summary": "39 unique cell IDs; 9 Phase 3-6 code cells parsed."
+    },
+    {
+      "name": "Diff whitespace check",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "actual_summary": "No whitespace errors. Git warned the notebook's working-copy CRLF will normalize to LF."
+    },
+    {
+      "name": "Editable-install attempt",
+      "command": ".venv/Scripts/python.exe -m pip install --no-deps -e .",
+      "exit_code": 1,
+      "actual_summary": "Not installed. Build isolation could not fetch setuptools>=68 because network access was blocked; an escalated retry reached PyPI but failed TLS certificate verification."
+    }
+  ],
+  "api_inspection": {
+    "calibrated_classifier_cv": "(estimator=None, *, method='sigmoid', cv=None, n_jobs=None, ensemble='auto')",
+    "randomized_search_cv": "(estimator, param_distributions, *, n_iter=10, scoring=None, n_jobs=None, refit=True, cv=None, verbose=0, pre_dispatch='2*n_jobs', random_state=None, error_score=nan, return_train_score=False)",
+    "random_forest_default_n_estimators": 100,
+    "xgboost_classifier_signature": "(*, objective=..., **kwargs)",
+    "xgboost_parameters": "The configured objective, eval_metric, tree_method, verbosity, random_state, and n_jobs were checked through XGBClassifier.get_params; search parameter names are checked against the constructed Pipeline before search."
+  },
+  "research_data_and_pending_checks": {
+    "real_split_present_locally": false,
+    "real_train_validation_feature_batches_present_locally": false,
+    "real_models_or_validation_results_generated": false,
+    "phase6_reads_test_feature_values": false,
+    "colab_training_run": "pending team execution and review",
+    "practical_target_agreement": "pending team and supervisor; reports/practical_target.md contains an unsigned template",
+    "remote_github_actions": "pending",
+    "supervisor_decisions": "pending"
+  }
+}

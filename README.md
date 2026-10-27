@@ -10,22 +10,22 @@ finding. This is a single-generator study, not proof of image authenticity.
 
 ## Current stage
 
-Phases 0-5 code is implemented: foundation, acquisition, metadata audit and
+Phases 0-6 code is implemented: foundation, acquisition, metadata audit and
 frozen group-preserving splits, shared image preprocessing, handcrafted
-frequency features, and resumable pixel/frequency feature extraction.
-The team still runs the real-data steps in Colab; no real research split,
-feature batches, or data review has been verified here. Training and the app
-belong to later phases. Read [AGENTS.md](AGENTS.md), the [Phase 5 report](reports/phase_5_report.md), and the
-PRD before proceeding. User policy: commit and push changes to `main` only.
+frequency features, resumable feature extraction, and train/validation-only
+model selection. The team still runs the real-data steps in Colab; no real
+research split, feature batches, training results, or data review has been
+verified here. Read [AGENTS.md](AGENTS.md), the phase reports, and the PRD
+before proceeding. User policy: commit and push changes to `main` only.
 
 ## What the folders are for
 
 | Path | Purpose |
 | --- | --- |
 | `config.yaml` | One place for experiment settings and Drive paths |
-| `src/aidetect/` | Shared configuration, acquisition, audit, and split code |
+| `src/aidetect/` | Shared configuration, acquisition, audit, split, feature, and training code |
 | `tests/` | Small automatic checks that need no dataset or internet |
-| `scripts/` | Acquisition, audit, and split commands; training/evaluation later |
+| `scripts/` | Acquisition, audit, split, feature-extraction, and Phase 6 training commands |
 | `notebooks/colab_runner.ipynb` | Team's step-by-step runner in free Colab |
 | `app/` | Future React frontend and local Python prediction API |
 | `reports/` | Phase reports and, later, research results |
@@ -128,6 +128,44 @@ The test command is deterministic write-only extraction into
 `features_root/test_sealed/`; the official `read_feature_batches` reader raises
 `PermissionError` until `artifacts/FREEZE.lock` exists. Phase 5 does not train,
 select models, inspect test features, or evaluate the test set.
+
+Phase 6 accepts either the active full-config hash or the recorded Phase 5 hash
+`7ac0df38870f031ee724c7b9b1610d12b02890bd9fd2760adb1215facc498d0f`. The
+historical hash is allowed only when the Phase 5 feature contract fingerprint
+in `config.yaml` still matches the active preprocessing, frequency, and
+extraction settings. This lets Phase 6 add training-only settings without
+silently treating changed image features as compatible.
+
+## Phase 6: train/validation model selection
+
+Run Phase 6 only after the team has verified the frozen split and Phase 5
+train/validation feature batches in Colab. `scripts/train_models.py` reads only
+`features_root/train` and `features_root/val`, verifies their Parquet metadata,
+batch ID hashes, the immutable split digest, and the active feature contract,
+and refuses to run after `artifacts/FREEZE.lock` exists. It never opens
+`features_root/test_sealed`.
+
+The script selects `r0` and `k_mad` by fitting the default Random Forest on
+train and comparing validation accuracy. It then runs the same configured
+shuffled stratified folds and randomized-search budget for frequency and pixel
+SVM, Random Forest, and XGBoost pipelines. Each pipeline scales inside CV. The
+SVM is refit with sigmoid calibration using training rows only. Validation
+accuracy, ROC-AUC, and Brier score are recorded for all six models; the primary
+frequency model is selected by validation accuracy before test access.
+
+```text
+python scripts/train_models.py
+```
+
+Outputs include `artifacts/feature_choice.json`,
+`artifacts/primary_model.json`, `artifacts/versions.json`, six ignored model
+files under `artifacts/models/`, and the actual run tables under
+`reports/phase_6_results.{json,md}`. Frequency Random Forest and XGBoost feature
+importance plots and CSVs are descriptive only. Synthetic local tests exercise
+the pipeline; no real-data results are recorded until the team runs Colab.
+The practical-use target remains a team/supervisor decision in
+`reports/practical_target.md`; do not invent a threshold or proceed to Phase 7
+until the team records it.
 
 ## Phase 1: collect images in Colab
 
@@ -264,10 +302,9 @@ do not generate a fake research split hash in this repository.
 
 ## Remaining phases
 
-1. Fair training/tuning and primary-model selection (Phase 6).
-2. Freeze, single evaluation, and hypothesis tests (Phase 7).
-3. Local demo (Phase 8).
-4. Report pack and reproduction guide (Phase 9).
+1. Freeze, single evaluation, and hypothesis tests (Phase 7).
+2. Local demo (Phase 8).
+3. Report pack and reproduction guide (Phase 9).
 
 The user's updated Phase 8 choice is React. Planned folders are `app/frontend/`
 for the interface and `app/backend/` for the local Python API. The API will reuse
