@@ -1,0 +1,21 @@
+# Main experiment defaults from PRD v1.0. Pilot settings stay separate.
+seed: 42
+image_size: 256
+rapsd_rings: 64
+pixel_baseline_size: 32
+positive_label: 1
+split:
+  train: 0.70
+  val: 0.15
+  test: 0.15
+paths:
+  data_root: /content/drive/MyDrive/aidetect/data
+  features_root: /content/drive/MyDrive/aidetect/features
+dataset:
+  main: TheKernel01/Tiny-GenImage
+  generator_name: SD15
+  max_real: 4000
+cv_folds: 5
+search_iters: 30
+alpha: 0.05
+batch_size: 500

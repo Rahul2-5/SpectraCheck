@@ -1,0 +1,21 @@
+# Local Python environment and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.ipynb_checkpoints/
+
+# Real research data/features/models belong on Drive, never in Git.
+data/
+features/
+*.parquet
+*.npz
+artifacts/models/
+
+# Machine-specific settings and credentials
+.env
+.env.*
+.streamlit/secrets.toml
