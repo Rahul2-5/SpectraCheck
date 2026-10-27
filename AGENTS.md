@@ -6,10 +6,12 @@
 - Project: **Detecting AI-Generated Images Using Frequency-Domain Features**.
 - Team: Rahul Temkar, Shravani Rane, Jagruti Doke; MCA, MET Institute of Computer Science.
 - Memory initialized: 27 October 2026. At initialization the workspace contained only the two PRD files. No implementation, Git repository, dataset, experiments, or completed phase was present.
-- Phase 0 implementation is now prepared on local branch `phase-0`: config, package skeleton, pinned environment, reproducibility helpers, 15 passing tests, CI workflow, Colab runner, README, and report template. See `reports/phase_0_report.md` and `reports/phase_0_environment.json` for evidence.
-- Local checks passed with Python 3.13.5 on Windows. Phase 0 is awaiting the team's Colab/GitHub checks; it has NOT been declared passed by the team. Phase 1 has not started.
-- Configured Git remote observed during setup: `https://github.com/Rahul2-5/SpectraCheck.git`. This phase has not pushed changes. The Colab runner uses this URL and the `phase-0` branch.
-- The environment requires Python 3.11+ (within the PRD's 3.10+ scope); direct pins were selected using Python 3.11 package metadata and installed/import-checked on Python 3.13. Full Python 3.11/Linux execution remains a CI check.
+- Phase 0 foundation is implemented and included on `main`. See `reports/phase_0_report.md` and `reports/phase_0_environment.json` for historical evidence.
+- Phase 1 acquisition code is implemented: original-byte main/pilot collection, seeded reservoir sampling, all-generator counts, revision/config guards, manifests, interruption recovery, and Colab commands. See `reports/phase_1_report.md` and `reports/phase_1_checks.json`.
+- Local checks: 42 tests passed on Python 3.13.5; pip check and all 16 direct dependency imports passed. Real Colab downloads, actual SD15/SD14 counts, supervisor decisions, and remote CI results have not been supplied/verified. The user authorized Phase 1 by saying proceed; this is not evidence that those checks passed. Phase 2 has not started.
+- Configured Git remote: `https://github.com/Rahul2-5/SpectraCheck.git`. User instruction after Phase 0: **commit and push on `main` only**. This overrides the PRD's per-phase branch convention. Completed setup was fast-forwarded onto local `main`; keep notebook clone instructions on `main`.
+- Publication is pending: automatic approval review rejected the Phase 0/1 push because explicit authorization to upload source/reports to the named `Rahul2-5/SpectraCheck` destination is required. Do not retry or route around this rejection; request destination-specific user approval. Local implementation and checks are complete.
+- The environment requires Python 3.11+ (within the PRD's 3.10+ scope); direct pins were selected using Python 3.11 package metadata and installed/import-checked on Python 3.13. Full Python 3.11/Linux execution remains a CI check. Phase 1 makes the already installed `huggingface-hub==2.3.0` an explicit dependency because the downloader resolves source revisions using HfApi.
 - Keep this section current with confirmed decisions, completed phases, evidence paths, and pending team checks. Never mark a phase passed on behalf of the team or record planned work as completed.
 
 ## Objective and scope
@@ -22,7 +24,7 @@ Out of scope: cross-generator evaluation, social-media compression robustness, d
 
 ## Working rules from the PRD
 
-1. Implement exactly one requested phase per task. Work on `phase-N`, run the phase tests, write `reports/phase_N_report.md`, commit the phase work, and STOP. Do not start the next phase until the user explicitly writes `PROCEED TO PHASE N+1` (with the actual phase number). The team reviews and runs the real-data checks before proceeding.
+1. Implement exactly one requested phase per task. Per the user's override, commit and push to `main` only; do not push `phase-N` branches. Run the phase tests, write `reports/phase_N_report.md`, commit the phase work, and STOP. The user authorizes the next phase by saying proceed; preserve team checks as pending unless results are supplied, and do not claim they passed.
 2. Cost must remain zero. No paid APIs, API keys, paid hosting, or GPU dependency. Permitted free services: GitHub, Google Colab, Google Drive, Kaggle, and Hugging Face public downloads. Recheck changing limits when needed; PRD estimates are not guarantees.
 3. Codex writes code, synthetic-data tests, documentation, and Colab commands. The team runs real-data downloads, audits, extraction, training, and evaluation in Colab, with data on Drive. The prototype runs on a laptop.
 4. Put settings in `config.yaml`; avoid magic numbers. Fixed seed is 42. Pin dependency versions actually installed and tested, and record config hashes in outputs.
@@ -60,6 +62,7 @@ Use `notebooks/colab_runner.ipynb`, `app/app.py`, and `docs/PHASE_REPORT_TEMPLAT
 ## Data and validity safeguards
 
 - Main data: Tiny-GenImage real ImageNet photos and Stable Diffusion v1.5 images only. Resolve `SD15` through the dataset's ClassLabel metadata; never hard-code generator ID 6.
+- Acquisition outputs are `data_root/main/` and `data_root/pilot/`, each with original files, `manifest.csv`, and `acquisition.json`. Main collection uses a metadata pass and image pass; it bounds memory but may transfer the full upstream Parquet data and rescans on resume. A resolved dataset commit, source mappings, config hash, and completion state are recorded; changed settings/source or mismatched existing bytes must raise rather than silently mix data.
 - CIFAKE is a small pilot only (planned 500 real + 500 fake). Its 32x32 images cannot support the main frequency study; never present pilot scores as research results.
 - Stream original bytes with image decoding disabled. Preserve original JPEG/PNG evidence until the audit; infer format from magic bytes. Save a manifest and counts for every observed generator, including SD14 and SD15.
 - Main sample size is unconfirmed: PRD assumes roughly 2,000 AI + 2,000 real. Initially sample up to 4,000 real images, then balance in Phase 2. If SD15 has fewer than roughly 1,000 images, the team must consult the supervisor about a scope change to full GenImage SD1.4.

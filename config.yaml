@@ -15,6 +15,13 @@ dataset:
   main: TheKernel01/Tiny-GenImage
   generator_name: SD15
   max_real: 4000
+  source_splits: [train, validation]
+  revision: main
+  minimum_ai_images: 1000
+pilot:
+  samples_per_class: 500
+  image_size: 32
+  source_splits: [train, test]
 cv_folds: 5
 search_iters: 30
 alpha: 0.05

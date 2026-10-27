@@ -2,6 +2,10 @@
 
 Status: **Implemented and verified locally; waiting for team checks.** Phase 1 has not started.
 
+Branch-policy update after this report: the user requested `main` only. Phase 0
+commits have been fast-forwarded onto `main`. Use `main` for pushes and notebook
+cloning; the `phase-0` instructions below describe the original setup session.
+
 ## What this phase did, in easy words
 
 We built the empty project's foundation. Every later piece now has a folder.
@@ -81,13 +85,13 @@ e84c4f99730a922ca15e1382d309459bc6380066c5468356287ce9fef9d4733b
 
 ## Checks for the team to run in Colab
 
-1. Make the local `phase-0` branch available on the configured GitHub repository. This setup has not pushed it. From a Git-enabled terminal, the team can run:
+1. Under the user's updated branch policy, use `main` on the configured GitHub repository. From a Git-enabled terminal, the team can run:
 
    ```text
-   git push -u origin phase-0
+   git push -u origin main
    ```
 
-2. Upload `notebooks/colab_runner.ipynb` to free Colab. Use a CPU runtime. Run the Phase 0 cells in order; they mount Drive, clone the configured repository/branch, and install the pinned environment. Restart the session after installation if Colab asks, then continue at the verification cell.
+2. Upload `notebooks/colab_runner.ipynb` to free Colab. Use a CPU runtime. Run the setup cells in order; they mount Drive, clone `main`, and install the pinned environment. Restart the session after installation if Colab asks, then continue at the verification cell.
 3. The verification cell prints the actual branch, commit, Python version, all 15 pinned library versions, and config hash. It runs pip check and raises on any mismatch/import error. Keep these outputs for review.
 4. The exact test command in the notebook is:
 
@@ -97,7 +101,7 @@ e84c4f99730a922ca15e1382d309459bc6380066c5468356287ce9fef9d4733b
 
    Expected: 15 passing tests. Do not continue if installation, pip check, or pytest fails; share the exact failing output for a Phase 0 fix.
 
-5. In GitHub Actions, open **Python tests** for `phase-0` and verify both Linux jobs (3.11 and 3.13) pass.
+5. In GitHub Actions, open **Python tests** for `main` and verify both Linux jobs (3.11 and 3.13) pass.
 6. Review `config.yaml` against the PRD. Data and features are intentionally stored in separate subfolders under `/content/drive/MyDrive/aidetect`.
 
 ## Assumptions I made

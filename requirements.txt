@@ -10,6 +10,7 @@ statsmodels==0.15.0
 imagehash==4.3.2
 matplotlib==3.11.2
 datasets==5.1.0
+huggingface-hub==2.3.0
 pyyaml==6.0.3
 joblib==1.6.0
 streamlit==1.66.1

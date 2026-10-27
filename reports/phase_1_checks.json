@@ -1,0 +1,38 @@
+{
+  "python": "3.13.5",
+  "direct_dependencies": {
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "pandas": "3.1.0",
+    "pyarrow": "26.0.0",
+    "pillow": "13.0.0",
+    "scikit-learn": "1.9.1",
+    "xgboost": "3.2.0",
+    "statsmodels": "0.15.0",
+    "imagehash": "4.3.2",
+    "matplotlib": "3.11.2",
+    "datasets": "5.1.0",
+    "huggingface-hub": "2.3.0",
+    "pyyaml": "6.0.3",
+    "joblib": "1.6.0",
+    "streamlit": "1.66.1",
+    "pytest": "9.1.1"
+  },
+  "config_sha256": "7bdbebb71fb20c71a233bcb6ca6e5aa61dc5e3fb6b1ad3a66bf6358e8eeed188",
+  "notebook_static_checks": "pass: syntax, clean outputs, unique IDs, main clone, eight future-phase TODOs",
+  "signature_checks": {
+    "datasets.load_dataset": "(path: str, name: Optional[str] = None, data_dir: Optional[str] = None, data_files: Union[str, collections.abc.Sequence[str], collections.abc.Mapping[str, Union[str, collections.abc.Sequence[str]]], NoneType] = None, split: Union[str, datasets.splits.Split, list[str], list[datasets.splits.Split], NoneType] = None, cache_dir: Optional[str] = None, features: Optional[datasets.features.features.Features] = None, download_config: Optional[datasets.download.download_config.DownloadConfig] = None, download_mode: Union[datasets.download.download_manager.DownloadMode, str, NoneType] = None, verification_mode: Union[datasets.utils.info_utils.VerificationMode, str, NoneType] = None, keep_in_memory: Optional[bool] = None, save_infos: bool = False, revision: Union[datasets.utils.version.Version, str, NoneType] = None, token: Union[bool, str, NoneType] = None, streaming: bool = False, num_proc: Optional[int] = None, storage_options: Optional[dict] = None, **config_kwargs) -> Union[datasets.dataset_dict.DatasetDict, datasets.arrow_dataset.Dataset, datasets.dataset_dict.IterableDatasetDict, datasets.iterable_dataset.IterableDataset]",
+    "datasets.Image": "(mode: Optional[str] = None, decode: bool = True, id: Optional[str] = None) -> None",
+    "datasets.ClassLabel": "(num_classes: dataclasses.InitVar[typing.Optional[int]] = None, names: list[str] = None, names_file: dataclasses.InitVar[typing.Optional[str]] = None, id: Optional[str] = None) -> None",
+    "IterableDataset.cast_column": "(self, column: str, feature: Union[dict, list, tuple, datasets.features.features.Value, datasets.features.features.ClassLabel, datasets.features.translation.Translation, datasets.features.translation.TranslationVariableLanguages, datasets.features.features.LargeList, datasets.features.features.List, datasets.features.features.Array2D, datasets.features.features.Array3D, datasets.features.features.Array4D, datasets.features.features.Array5D, datasets.features.audio.Audio, datasets.features.image.Image, datasets.features.mesh.Mesh, datasets.features.video.Video, datasets.features.pdf.Pdf, datasets.features.nifti.Nifti, datasets.features.bio_sequence.BioSequence, datasets.features.bio_structure.BioStructure]) -> 'IterableDataset'",
+    "IterableDataset.select_columns": "(self, column_names: Union[str, list[str]]) -> 'IterableDataset'",
+    "HfApi.dataset_info": "(self, repo_id: 'str', *, revision: 'str | None' = None, timeout: 'float | None' = None, files_metadata: 'bool' = False, expand: 'list[ExpandDatasetProperty_T] | None' = None, token: 'bool | str | None' = None) -> 'DatasetInfo'"
+  },
+  "real_data_downloaded": false,
+  "sources_checked": [
+    "https://huggingface.co/datasets/TheKernel01/Tiny-GenImage/blob/main/README.md?code=true",
+    "https://huggingface.co/docs/datasets/image_load",
+    "https://huggingface.co/docs/datasets/package_reference/main_classes",
+    "https://www.kaggle.com/datasets/birdy654/cifake-real-and-ai-generated-synthetic-images"
+  ]
+}
