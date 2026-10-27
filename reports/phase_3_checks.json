@@ -1,0 +1,39 @@
+{
+  "python": "3.12.1",
+  "pillow": "13.0.0",
+  "pytest": "9.1.1",
+  "config_sha256": "bf1e6f3b4f4cdc5f95d0503e55533aee54f48fc054ba2a6ea89df305a0af2c6c",
+  "preprocess_version": {
+    "color_conversion": "RGB_then_L",
+    "crop": "center_square",
+    "normalization_divisor": 255.0,
+    "orientation": "exif_transpose",
+    "output_dtype": "float64",
+    "resize_filter": "LANCZOS",
+    "undersized_policy": "reject",
+    "version": 1
+  },
+  "tests": {
+    "command": ".\\.venv\\Scripts\\python.exe -m pytest -q",
+    "summary": "79 passed in 21.17s",
+    "failed": 0,
+    "skipped": 0
+  },
+  "pip_check": "No broken requirements found.",
+  "notebook_static_checks": {
+    "json": "pass",
+    "unique_ids": "pass",
+    "phase3_cell_syntax": "pass",
+    "phase3_cell_lines": 40,
+    "generic_all_python_ast_check": "not applicable: existing Colab %pip magic is not Python syntax"
+  },
+  "signature_checks": {
+    "PIL.Image.open": "(fp: 'StrOrBytesPath | IO[bytes]', mode: \"Literal['r']\" = 'r', formats: 'list[str] | tuple[str, ...] | None' = None) -> 'ImageFile.ImageFile'",
+    "PIL.ImageOps.exif_transpose": "(image: 'Image.Image', *, in_place: 'bool' = False) -> 'Image.Image | None'",
+    "PIL.Image.Image.resize": "(self, size: 'tuple[int, int] | list[int] | NumpyArray', resample: 'int | None' = None, box: 'tuple[float, float, float, float] | None' = None, reducing_gap: 'float | None' = None) -> 'Image'",
+    "PIL.Image.Resampling.LANCZOS": 1
+  },
+  "real_colab_preprocessing_reviewed": false,
+  "real_research_split_present": false,
+  "remote_ci_verified": false
+}

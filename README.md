@@ -10,10 +10,11 @@ finding. This is a single-generator study, not proof of image authenticity.
 
 ## Current stage
 
-Phases 0-2 code is implemented: foundation, acquisition, then metadata audit and
-frozen group-preserving splits. The team still runs the real-data steps in Colab.
-Shared classifier preprocessing, training, and the app belong to later phases.
-Read [AGENTS.md](AGENTS.md), the [Phase 2 report](reports/phase_2_report.md), and the
+Phases 0-3 code is implemented: foundation, acquisition, metadata audit and
+frozen group-preserving splits, then the shared image preprocessing contract.
+The team still runs the real-data steps in Colab; no real research split or
+preprocessing review has been verified here. Training, features, and the app
+belong to later phases. Read [AGENTS.md](AGENTS.md), the [Phase 3 report](reports/phase_3_report.md), and the
 PRD before proceeding. User policy: commit and push changes to `main` only.
 
 ## What the folders are for
@@ -73,6 +74,18 @@ Its setup cells do not download research images or train models. Paths in
 The configured remote is `https://github.com/Rahul2-5/SpectraCheck.git`. Push `main`
 and inspect the **Python tests** workflow under Actions. Both matrix jobs must
 pass. Remote workflow success must be checked separately from local test success.
+
+## Phase 3: shared preprocessing
+
+`aidetect.preprocess.preprocess_image(src, cfg)` is the single image entry
+point for later features, training, evaluation, and the local app. It accepts
+an image path or encoded bytes, applies EXIF orientation, RGB then grayscale
+`L`, center square cropping, conditional LANCZOS downsampling, and float64
+normalization to `[0, 1]`. It rejects images smaller than `image_size` rather
+than upscaling them. The fixed contract is recorded as `PREPROCESS_VERSION` in
+`src/aidetect/preprocess.py` and mirrored under `preprocess` in `config.yaml`.
+The Phase 3 notebook cell reviews 20 training images per class and reports
+undersized inputs; it does not inspect test rows or create features.
 
 ## Phase 1: collect images in Colab
 
@@ -207,17 +220,14 @@ do not generate a fake research split hash in this repository.
 - Work on `main` only, one phase at a time; report actual checks and preserve
   pending real-data checks for the team.
 
-## Next phases
+## Remaining phases
 
-1. Data acquisition scripts and actual dataset counts.
-2. Shortcut audit, duplicates, and frozen balanced splits.
-3. Shared preprocessing.
-4. Frequency features.
-5. Pixel baseline and batched extraction.
-6. Fair training/tuning and primary-model selection.
-7. Freeze, single evaluation, and hypothesis tests.
-8. Local demo.
-9. Report pack and reproduction guide.
+1. Frequency features.
+2. Pixel baseline and batched extraction.
+3. Fair training/tuning and primary-model selection.
+4. Freeze, single evaluation, and hypothesis tests.
+5. Local demo.
+6. Report pack and reproduction guide.
 
 The user's updated Phase 8 choice is React. Planned folders are `app/frontend/`
 for the interface and `app/backend/` for the local Python API. The API will reuse

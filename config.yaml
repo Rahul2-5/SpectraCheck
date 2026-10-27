@@ -4,6 +4,15 @@ image_size: 256
 rapsd_rings: 64
 pixel_baseline_size: 32
 positive_label: 1
+preprocess:
+  version: 1
+  orientation: exif_transpose
+  color_conversion: RGB_then_L
+  crop: center_square
+  resize_filter: LANCZOS
+  undersized_policy: reject
+  output_dtype: float64
+  normalization_divisor: 255.0
 split:
   train: 0.70
   val: 0.15
