@@ -34,11 +34,11 @@ assignments against silent changes.
 Work remains on `main`, following the user's branch/push policy. No actual
 dataset images or synthetic stand-in research hashes are included in this commit.
 
-Publication status: automatic approval review rejected the Phase 2 push before
-execution, stating that the previous explicit repository approval covers only
-Phase 0/1. The Phase 2 work is saved locally; pushing these new source files,
-tests, notebook, and reports requires user approval for that payload at
-`https://github.com/Rahul2-5/SpectraCheck.git`, branch `main`.
+Publication authorization: automatic approval review initially required separate
+Phase 2 approval. The user subsequently approved pushing Phase 2 and the React
+prototype plan change to `https://github.com/Rahul2-5/SpectraCheck.git`, branch
+`main`, with commit message `Phase 2 completed ,(React in Phase 8)`. Phase 2 code
+completion does not establish that the real-data audit or remote CI has passed.
 
 ## Tests
 
