@@ -164,8 +164,48 @@ files under `artifacts/models/`, and the actual run tables under
 importance plots and CSVs are descriptive only. Synthetic local tests exercise
 the pipeline; no real-data results are recorded until the team runs Colab.
 The practical-use target remains a team/supervisor decision in
-`reports/practical_target.md`; do not invent a threshold or proceed to Phase 7
-until the team records it.
+`reports/practical_target.md`; do not invent a threshold or create the Phase 7
+freeze until the team records it.
+
+## Phase 7: freeze and one-time test evaluation
+
+The local implementation is in `src/aidetect/freeze.py`,
+`src/aidetect/evaluate.py`, and `src/aidetect/stats_tests.py`, with commands
+`scripts/freeze.py` and `scripts/evaluate_test.py`. Local synthetic tests cover
+the protocol; no real test set has been opened and no research result is
+recorded in this checkout.
+
+Before running Phase 7 in Colab, review the real Phase 6 results and models,
+complete `reports/practical_target.md`, and commit the Phase 6 outputs and
+reviewed decision on `main`. The Phase 7 notebook copies the six ignored model
+files to Drive immediately after training, with a SHA-256 manifest, and can
+restore them after a Colab runtime restart. The freeze command requires a clean `main` tree,
+the verified split digest, all six trained models, compatible Phase 6
+provenance, and the completed target. It locks the config, split, package and
+script sources, selection records, models, versions, target, and raw SHA-256
+digests of the sealed Parquet files. Freeze hashes the test files as bytes; it
+does not parse test rows or feature values.
+
+```text
+python scripts/freeze.py
+```
+
+Review and commit/push `artifacts/FREEZE.lock` to `main` before test access. On
+the resulting clean checkout, run the evaluator once:
+
+```text
+python scripts/evaluate_test.py
+```
+
+The evaluator rechecks every frozen hash, creates
+`artifacts/EVALUATION_STARTED.json` before loading any sealed test rows, then
+writes six models' metrics, exact accuracy confidence intervals, preregistered
+tests and decisions to `reports/results.json` and `reports/results.md`, plus
+per-image predictions to `reports/test_predictions.csv`. If it fails after
+creating the marker, do not rerun it; preserve the marker and ask the supervisor
+how to proceed. After a successful run, check accuracy against the confusion
+matrix and commit/push the result files to `main`. Later analyses must be
+labeled exploratory.
 
 ## Phase 1: collect images in Colab
 
