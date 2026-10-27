@@ -1,0 +1,52 @@
+{
+  "python": "3.12.1",
+  "numpy": "2.4.6",
+  "pillow": "13.0.0",
+  "pandas": "3.1.0",
+  "pyarrow": "26.0.0",
+  "pytest": "9.1.1",
+  "config_sha256": "7ac0df38870f031ee724c7b9b1610d12b02890bd9fd2760adb1215facc498d0f",
+  "pixel_baseline_size": 32,
+  "pixel_feature_count": 1024,
+  "batch_size": 500,
+  "peak_k_mad": [3, 4, 5, 6, 8],
+  "tests": {
+    "focused_command": ".\\.venv\\Scripts\\python.exe -m pytest -q tests/test_pixel_baseline.py tests/test_feature_extraction.py",
+    "focused_summary": "11 passed in 3.52s",
+    "full_command": ".\\.venv\\Scripts\\python.exe -m pytest -q",
+    "full_summary": "105 passed in 28.59s",
+    "failed": 0,
+    "skipped": 0
+  },
+  "pip_check": "No broken requirements found.",
+  "notebook_static_checks": {
+    "json": "pass",
+    "unique_ids": "pass",
+    "phase3_cell_syntax": "pass",
+    "phase4_cell_syntax": "pass",
+    "phase5_cells_checked": [
+      "phase-5-prepare",
+      "phase-5-train-val",
+      "phase-5-test-write",
+      "phase-5-checks"
+    ],
+    "phase5_cell_syntax": "pass"
+  },
+  "signature_checks": {
+    "numpy.fft.fft2": "(a, s=None, axes=(-2, -1), norm=None, out=None)",
+    "numpy.fft.fftshift": "(x, axes=None)",
+    "PIL.Image.Image.resize": "(self, size: 'tuple[int, int] | list[int] | NumpyArray', resample: 'int | None' = None, box: 'tuple[float, float, float, float] | None' = None, reducing_gap: 'float | None' = None) -> 'Image'",
+    "pyarrow.parquet.write_table": "(table, where, row_group_size=None, version='2.6', use_dictionary=True, compression='snappy', write_statistics=True, use_deprecated_int96_timestamps=None, coerce_timestamps=None, allow_truncated_timestamps=False, data_page_size=None, flavor=None, filesystem=None, compression_level=None, use_byte_stream_split=False, column_encoding=None, data_page_version='1.0', use_compliant_nested_type=True, encryption_properties=None, write_batch_size=None, dictionary_pagesize_limit=None, store_schema=True, write_page_index=False, write_page_checksum=False, sorting_columns=None, store_decimal_as_integer=False, write_time_adjusted_to_utc=False, max_rows_per_page=None, bloom_filter_options=None, use_content_defined_chunking=False, **kwargs)"
+  },
+  "synthetic_phase5_gates": {
+    "baseline_length_1024": true,
+    "lookup_energy_ratio_matches_direct": true,
+    "resume_skips_existing_batches": true,
+    "test_reader_without_freeze_lock_raises_permission_error": true,
+    "script_manifest_split_hash_check": true
+  },
+  "real_colab_feature_files_present": false,
+  "real_research_split_present": false,
+  "real_row_counts_and_batch_timings_verified": false,
+  "remote_ci_verified": false
+}

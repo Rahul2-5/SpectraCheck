@@ -41,6 +41,8 @@ cv_folds: 5
 search_iters: 30
 alpha: 0.05
 batch_size: 500
+extraction:
+  peak_k_mad: [3, 4, 5, 6, 8]
 audit:
   shortcut_max_accuracy: 0.60
   probe_tree_depth: 3

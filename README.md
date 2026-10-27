@@ -10,12 +10,12 @@ finding. This is a single-generator study, not proof of image authenticity.
 
 ## Current stage
 
-Phases 0-4 code is implemented: foundation, acquisition, metadata audit and
-frozen group-preserving splits, shared image preprocessing, and the handcrafted
-frequency feature module.
-The team still runs the real-data steps in Colab; no real research split or
-preprocessing review has been verified here. Training and the app belong to
-later phases. Read [AGENTS.md](AGENTS.md), the [Phase 4 report](reports/phase_4_report.md), and the
+Phases 0-5 code is implemented: foundation, acquisition, metadata audit and
+frozen group-preserving splits, shared image preprocessing, handcrafted
+frequency features, and resumable pixel/frequency feature extraction.
+The team still runs the real-data steps in Colab; no real research split,
+feature batches, or data review has been verified here. Training and the app
+belong to later phases. Read [AGENTS.md](AGENTS.md), the [Phase 5 report](reports/phase_5_report.md), and the
 PRD before proceeding. User policy: commit and push changes to `main` only.
 
 ## What the folders are for
@@ -61,7 +61,7 @@ the Windows executable. No paid service, API key, or GPU is needed.
 2. The clone cell uses `main` from the configured remote,
    `https://github.com/Rahul2-5/SpectraCheck.git`. Adjust the URL if the team uses
    a different repository. Phase branches are not used for publishing.
-3. Run the Phase 0 cells in order: mount Drive, clone `phase-0`, install, restart
+3. Run the Phase 0 cells in order: mount Drive, clone `main`, install, restart
    the Colab session if prompted, print versions, and run pytest.
 4. Confirm no dependency conflicts and all tests pass. Keep the printed versions
    and results for team review. Run only the authorized phase's cells.
@@ -98,6 +98,36 @@ RAPSD rings, producing 68 finite values. The Phase 4 notebook cell is
 train-only: it samples 200 rows per class, saves mean log-spectrum and mean
 RAPSD figures with 95% bands under `reports/figures/`, and does not create
 features for validation or test rows.
+
+## Phase 5: pixel baseline and batched feature extraction
+
+`aidetect.pixel_baseline.extract_pixel_features` accepts only the shared
+`preprocess_image` output, downsizes it with Pillow LANCZOS to the configured
+32×32 baseline, and returns 1,024 finite brightness values. This prescribed
+baseline resize is the one Phase 5 exception to the shared image-preprocessing
+resize rule.
+
+`scripts/extract_features.py` joins the immutable split file with the active
+manifest, preprocesses each image once, and writes one Parquet file per
+configured batch (500 by default). Each batch stores RAPSD, normalized entropy,
+per-radius cumulative energy for integer energy cutoffs, peak count/strength
+summaries for k in `[3, 4, 5, 6, 8]`, and the pixel vector. Parquet metadata
+records the configuration and split hashes. Existing batches are verified and
+skipped, so a disconnected Colab session can resume safely.
+
+Run the authorized split commands only after the Phase 2 audit and immutable
+split outputs exist:
+
+```text
+python scripts/extract_features.py --split train
+python scripts/extract_features.py --split val
+python scripts/extract_features.py --split test
+```
+
+The test command is deterministic write-only extraction into
+`features_root/test_sealed/`; the official `read_feature_batches` reader raises
+`PermissionError` until `artifacts/FREEZE.lock` exists. Phase 5 does not train,
+select models, inspect test features, or evaluate the test set.
 
 ## Phase 1: collect images in Colab
 
@@ -234,11 +264,10 @@ do not generate a fake research split hash in this repository.
 
 ## Remaining phases
 
-1. Pixel baseline and batched extraction.
-2. Fair training/tuning and primary-model selection.
-3. Freeze, single evaluation, and hypothesis tests.
-4. Local demo.
-5. Report pack and reproduction guide.
+1. Fair training/tuning and primary-model selection (Phase 6).
+2. Freeze, single evaluation, and hypothesis tests (Phase 7).
+3. Local demo (Phase 8).
+4. Report pack and reproduction guide (Phase 9).
 
 The user's updated Phase 8 choice is React. Planned folders are `app/frontend/`
 for the interface and `app/backend/` for the local Python API. The API will reuse
