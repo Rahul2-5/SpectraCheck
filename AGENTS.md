@@ -13,12 +13,13 @@
 - Configured Git remote: `https://github.com/Rahul2-5/SpectraCheck.git`. User instruction after Phase 0: **commit and push on `main` only**. This overrides the PRD's per-phase branch convention. Completed setup was fast-forwarded onto local `main`; keep notebook clone instructions on `main`.
 - The user explicitly approved pushing the Phase 0/1 source code and reports to `https://github.com/Rahul2-5/SpectraCheck.git`, branch `main`, after the destination-specific approval question. The previous automatic-review approval block is resolved by that authorization. Push only `main`; retain real-data/CI checks as pending unless verified.
 - Phase 2 publication is pending: automatic approval review rejected its push, stating the previous explicit approval covers Phase 0/1 and requires approval for the new Phase 2 source/tests/notebook/reports. Preserve the completed work locally and ask for Phase 2 publication approval; do not route around the rejection.
+- User decision on 27 October 2026: use **React instead of Streamlit** for D3/Phase 8. This overrides the PRD's framework choice. Build a local React frontend with a local Python prediction API that reuses `aidetect` preprocessing/features/models; do not port inference logic to JavaScript. See `docs/DECISIONS.md`.
 - The environment requires Python 3.11+ (within the PRD's 3.10+ scope); direct pins were selected using Python 3.11 package metadata and installed/import-checked on Python 3.13. Full Python 3.11/Linux execution remains a CI check. Phase 1 makes the already installed `huggingface-hub==2.3.0` an explicit dependency because the downloader resolves source revisions using HfApi.
 - Keep this section current with confirmed decisions, completed phases, evidence paths, and pending team checks. Never mark a phase passed on behalf of the team or record planned work as completed.
 
 ## Objective and scope
 
-Build a reproducible Python package using handcrafted 2D FFT features to distinguish real images from AI-generated images. Compare frequency features against a matched pixel baseline using RBF SVM, Random Forest, and XGBoost (six combinations). Run a single held-out evaluation with pre-registered statistics, then demonstrate the validation-selected frequency model in a local Streamlit app.
+Build a reproducible Python package using handcrafted 2D FFT features to distinguish real images from AI-generated images. Compare frequency features against a matched pixel baseline using RBF SVM, Random Forest, and XGBoost (six combinations). Run a single held-out evaluation with pre-registered statistics, then demonstrate the validation-selected frequency model through a local React frontend and Python prediction API.
 
 Deliverables: D1 frequency feature module; D2 evaluation and statistical comparisons; D3 local prototype; D4 final report supported by reproducible figures, tables, and a model card. Null and mixed findings are valid outcomes.
 
@@ -39,7 +40,7 @@ Out of scope: cross-generator evaluation, social-media compression robustness, d
 
 ## Stack, configuration, and planned layout
 
-Python 3.10+; planned CI uses Python 3.11. Match the Python minor version between Colab and laptop where possible. Libraries: numpy, scipy, pandas, pyarrow, pillow, scikit-learn, xgboost, statsmodels, imagehash, matplotlib, datasets, pyyaml, joblib, streamlit, pytest.
+Python 3.10+; planned CI uses Python 3.11. Match the Python minor version between Colab and laptop where possible. Libraries: numpy, scipy, pandas, pyarrow, pillow, scikit-learn, xgboost, statsmodels, imagehash, matplotlib, datasets, pyyaml, joblib, pytest. React/Node frontend tooling and the Python HTTP API dependency will be added and pinned when implementing Phase 8; Streamlit is no longer required. Historical environment reports retain the versions that were actually checked at the time.
 
 PRD defaults to centralize in configuration:
 
@@ -105,7 +106,7 @@ Use `notebooks/colab_runner.ipynb`, `app/app.py`, and `docs/PHASE_REPORT_TEMPLAT
 
 ## Prototype and reporting
 
-Local Streamlit uploader supports jpg/jpeg/png/webp, processes uploads in memory only, reuses shared preprocessing and frozen feature choices, and loads the validation-selected primary model. Show label, calibrated probability, log spectrum, and RAPSD plot. Reject corrupt and undersized inputs clearly; warn on saved-versus-installed version mismatch. Verify prediction parity with evaluation helpers.
+The local React uploader supports jpg/jpeg/png/webp and sends the image to a local Python prediction API. The API processes uploads in memory only, reuses shared preprocessing and frozen feature choices, and loads the validation-selected primary model. React displays the label, calibrated probability, log spectrum, and RAPSD plot returned by the API. Reject corrupt and undersized inputs clearly; warn on saved-versus-installed version mismatch. Verify API prediction parity with evaluation helpers. Plan `app/frontend/` for React and `app/backend/` for the Python API; implement them in Phase 8, preserving the one-phase-at-a-time workflow. No paid API or production hosting is required.
 
 Required app note: "Model score for one Stable Diffusion v1.5 dataset; not proof of authenticity; may be wrong on other generators, screenshots or compressed images."
 
@@ -123,14 +124,14 @@ Report pack: saved-result figures at 300 dpi, CSV/Markdown tables, model card, c
 | 5 | Pixel baseline, batched feature summaries, sealed test outputs |
 | 6 | Equal-budget training/tuning, chosen features/primary model, practical target |
 | 7 | Freeze, one test evaluation, hypothesis tests and decisions (D2) |
-| 8 | Local Streamlit prototype (D3) |
+| 8 | Local React frontend + Python prediction API (D3) |
 | 9 | Saved-output report pack, model card, reproduction docs, deviations (D4 support) |
 
 Every phase report must contain: Done (files and purpose), Tests (exact command, pass/fail counts, summary), Outputs (paths), Checks for the team in Colab (exact cells/commands), Assumptions (and consequences if wrong), Open questions/unverified items, and STOP with the required next-phase instruction.
 
 ## Unresolved decisions and PRD inconsistencies
 
-- Supervisor confirmations remain pending: main dataset choice; insufficient-SD15 fallback; shortcut threshold and format remediation; undersized-image policy; pixel baseline; primary-model rule; practical target; local Streamlit framework. Defaults above are PRD choices, not recorded supervisor approvals.
+- Supervisor confirmations remain pending: main dataset choice; insufficient-SD15 fallback; shortcut threshold and format remediation; undersized-image policy; pixel baseline; primary-model rule; practical target. Defaults above are PRD choices, not recorded supervisor approvals. The user explicitly chose React for the prototype; do not ask again about Streamlit.
 - Phase 5 explicitly requires creating test features before freezing, whereas the short rulebook prohibits reading any test rows before freeze. Preserve the intended distinction: deterministic, write-only test feature generation is planned in Phase 5; inspection/evaluation of sealed features waits until Phase 7. Surface and resolve this conflict with the team before implementing test access; do not silently weaken the seal.
 - CIFAKE's 32x32 pilot conflicts with the main 256x256 no-upscaling policy. A pilot-specific configuration must be documented and kept separate from the main experiment; never silently upscale or weaken the main policy.
 - The PRD's instruction to find every resize only in preprocessing has a prescribed exception for pixel-baseline downsampling in Phase 5.

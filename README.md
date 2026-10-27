@@ -5,7 +5,7 @@ Team: Rahul Temkar, Shravani Rane, Jagruti Doke (MCA, MET Institute of Computer 
 
 We will compare handcrafted frequency features against pixel features using
 SVM, Random Forest, and XGBoost, evaluate once on a held-out test set, and build
-a local Streamlit demonstration. A result near chance is still a valid research
+a local React demonstration backed by a Python prediction API. A result near chance is still a valid research
 finding. This is a single-generator study, not proof of image authenticity.
 
 ## Current stage
@@ -25,7 +25,7 @@ PRD before proceeding. User policy: commit and push changes to `main` only.
 | `tests/` | Small automatic checks that need no dataset or internet |
 | `scripts/` | Acquisition, audit, and split commands; training/evaluation later |
 | `notebooks/colab_runner.ipynb` | Team's step-by-step runner in free Colab |
-| `app/` | Future local Streamlit demo |
+| `app/` | Future React frontend and local Python prediction API |
 | `reports/` | Phase reports and, later, research results |
 | `artifacts/` | Provenance hashes and, later, model-selection/freeze records |
 | `docs/` | Shared report template |
@@ -218,3 +218,10 @@ do not generate a fake research split hash in this repository.
 7. Freeze, single evaluation, and hypothesis tests.
 8. Local demo.
 9. Report pack and reproduction guide.
+
+The user's updated Phase 8 choice is React. Planned folders are `app/frontend/`
+for the interface and `app/backend/` for the local Python API. The API will reuse
+the same preprocessing, frequency features, and saved model used in evaluation.
+The browser will show the prediction, calibrated score, and spectrum plots.
+Frontend/API dependencies and run commands will be added during Phase 8.
+See [recorded decisions](docs/DECISIONS.md) for this PRD override.
