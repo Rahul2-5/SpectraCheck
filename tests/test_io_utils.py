@@ -76,7 +76,11 @@ def test_seed_repeats_python_and_numpy_sequences():
     assert not np.array_equal(first_numpy, np.random.random(5))
 
 
-@pytest.mark.parametrize("payload", [b"", b"abc", bytes(range(256)) * 8193])
+@pytest.mark.parametrize(
+    "payload",
+    [b"", b"abc", bytes(range(256)) * 8193],
+    ids=["empty", "known-abc", "binary-multiple-chunks"],
+)
 def test_file_hash_matches_known_bytes(tmp_path, payload):
     path = tmp_path / "sample.bin"
     path.write_bytes(payload)

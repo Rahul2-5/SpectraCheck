@@ -7,7 +7,7 @@ name = "ai-image-fft-detector"
 version = "0.1.0"
 description = "Reproducible frequency-feature study of AI-generated images"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dynamic = ["dependencies"]
 
 [tool.setuptools.dynamic]

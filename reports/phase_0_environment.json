@@ -1,0 +1,33 @@
+{
+  "python": "3.13.5",
+  "platform": "Windows",
+  "direct_dependencies": {
+    "numpy": "2.4.6",
+    "scipy": "1.17.1",
+    "pandas": "3.1.0",
+    "pyarrow": "26.0.0",
+    "pillow": "13.0.0",
+    "scikit-learn": "1.9.1",
+    "xgboost": "3.2.0",
+    "statsmodels": "0.15.0",
+    "imagehash": "4.3.2",
+    "matplotlib": "3.11.2",
+    "datasets": "5.1.0",
+    "pyyaml": "6.0.3",
+    "joblib": "1.6.0",
+    "streamlit": "1.66.1",
+    "pytest": "9.1.1"
+  },
+  "config_sha256": "e84c4f99730a922ca15e1382d309459bc6380066c5468356287ce9fef9d4733b",
+  "checks": {
+    "direct_version_pins": "pass",
+    "all_direct_imports": "pass",
+    "notebook_structure_and_syntax": "pass",
+    "workflow_yaml_and_python311_job": "pass"
+  },
+  "signature_checks": {
+    "yaml.safe_load": "(stream)",
+    "yaml.safe_dump": "(data, stream=None, **kwds)",
+    "numpy.random.seed": "seed(seed=None)"
+  }
+}

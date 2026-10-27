@@ -2,11 +2,14 @@
 
 ## Source and current state
 
-- Source of truth: `PRD_AI_Image_Detection_Codex_Guide.docx` (PRD v1.0, 26 October 2026); a PDF version is also present. Read the relevant phase in the PRD before implementing it. This file summarizes the PRD; it does not replace its detailed prompts and checks.
+- Source of truth: `PRD_AI_Image_Detection_Codex_Guide.docx` (PRD v1.0, 26 October 2026); a PDF version is also present. The files were observed moved into `docs/` during Phase 0; check there if absent at the root. Read the relevant phase before implementing it. This file summarizes the PRD; it does not replace its detailed prompts and checks.
 - Project: **Detecting AI-Generated Images Using Frequency-Domain Features**.
 - Team: Rahul Temkar, Shravani Rane, Jagruti Doke; MCA, MET Institute of Computer Science.
 - Memory initialized: 27 October 2026. At initialization the workspace contained only the two PRD files. No implementation, Git repository, dataset, experiments, or completed phase was present.
-- This task created project memory only. Phase 0 has not been executed or passed.
+- Phase 0 implementation is now prepared on local branch `phase-0`: config, package skeleton, pinned environment, reproducibility helpers, 15 passing tests, CI workflow, Colab runner, README, and report template. See `reports/phase_0_report.md` and `reports/phase_0_environment.json` for evidence.
+- Local checks passed with Python 3.13.5 on Windows. Phase 0 is awaiting the team's Colab/GitHub checks; it has NOT been declared passed by the team. Phase 1 has not started.
+- Configured Git remote observed during setup: `https://github.com/Rahul2-5/SpectraCheck.git`. This phase has not pushed changes. The Colab runner uses this URL and the `phase-0` branch.
+- The environment requires Python 3.11+ (within the PRD's 3.10+ scope); direct pins were selected using Python 3.11 package metadata and installed/import-checked on Python 3.13. Full Python 3.11/Linux execution remains a CI check.
 - Keep this section current with confirmed decisions, completed phases, evidence paths, and pending team checks. Never mark a phase passed on behalf of the team or record planned work as completed.
 
 ## Objective and scope
