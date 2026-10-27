@@ -33,10 +33,11 @@ User override: all commits and pushes go to `main` only. The completed Phase 0
 history, including the existing PRD move into `docs/`, was fast-forwarded onto
 local `main`. No phase branch is pushed by this work.
 
-Publication status: the push was rejected by automatic approval review before
-execution. Its reason was that the source/reports may be private and the user
-must explicitly authorize upload to `https://github.com/Rahul2-5/SpectraCheck.git`.
-Work is committed locally; publication requires that destination-specific approval.
+Publication authorization: automatic approval review initially rejected the push
+because source/reports may be private and the named destination needed explicit
+approval. The user subsequently approved uploading the Phase 0/1 source and
+reports to `https://github.com/Rahul2-5/SpectraCheck.git`, branch `main`. Publish
+only `main`; remote publication does not establish that Colab or CI checks passed.
 
 ## Tests
 
