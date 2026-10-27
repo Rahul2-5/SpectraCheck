@@ -30,6 +30,7 @@ Status: **Phase 6 implementation and local synthetic checks are complete. The re
 - `.venv/Scripts/python.exe scripts/train_models.py --help`: passed and printed the train/validation-only usage.
 - Notebook JSON and unique IDs passed; all **9 Phase 3–6 code cells** parsed with Python AST.
 - `git diff --check`: exit code 0, no whitespace errors. Git reported that the notebook working-copy CRLF will normalize to LF.
+- GitHub Actions `Python tests` completed with conclusion **success** for commit `6f9a6a881f5ad19ca5153a41644a9a2d4dfaf287` on `main` ([run](https://github.com/Rahul2-5/SpectraCheck/actions/runs/40533619083)).
 - Installed package inspection on Python 3.11.4 verified `CalibratedClassifierCV`, `RandomizedSearchCV`, `SVC`, and `RandomForestClassifier` signatures. Scikit-learn was 1.9.1; NumPy 2.4.6; SciPy 1.17.1; XGBoost 3.2.0; joblib 1.6.0. The XGBoost effective configured parameters and search parameter names are checked by the code/tests.
 - The Phase 6 synthetic end-to-end test confirmed all six validation pipelines exceeded 0.90 accuracy on its generated separable data. This is a software test only and is not a research result.
 
@@ -72,7 +73,7 @@ The real-data outputs `artifacts/feature_choice.json`, `artifacts/primary_model.
 
 - The team has not supplied real Phase 5 train/validation feature batches, their row counts/timings, or the real split hash. No actual model tuning, validation score, or selected model is available.
 - The practical-use target and supervisor approvals remain pending.
-- GitHub Actions/remote CI and the Colab runtime have not been checked.
+- The Colab runtime and real-data checks have not been run.
 - A real feature directory with an unrecognized config hash or changed Phase 3/4/5 contract will be rejected until the team provides compatible provenance or regenerates Phase 5 outputs in a separate directory.
 - The editable install did not complete locally; full regression tests passed with `PYTHONPATH=src`. Install the project normally in the team's Colab runtime before running the research workflow.
 

@@ -65,6 +65,14 @@
       "actual_summary": "No whitespace errors. Git warned the notebook's working-copy CRLF will normalize to LF."
     },
     {
+      "name": "GitHub Actions",
+      "commit": "6f9a6a881f5ad19ca5153a41644a9a2d4dfaf287",
+      "workflow": "Python tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/Rahul2-5/SpectraCheck/actions/runs/40533619083"
+    },
+    {
       "name": "Editable-install attempt",
       "command": ".venv/Scripts/python.exe -m pip install --no-deps -e .",
       "exit_code": 1,
@@ -85,7 +93,7 @@
     "phase6_reads_test_feature_values": false,
     "colab_training_run": "pending team execution and review",
     "practical_target_agreement": "pending team and supervisor; reports/practical_target.md contains an unsigned template",
-    "remote_github_actions": "pending",
+    "remote_github_actions": "Python tests workflow succeeded for Phase 6 commit 6f9a6a881f5ad19ca5153a41644a9a2d4dfaf287",
     "supervisor_decisions": "pending"
   }
 }
