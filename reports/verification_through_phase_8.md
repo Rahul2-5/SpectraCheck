@@ -24,7 +24,7 @@ statistical decision rules, and evaluation protocol were not changed.
 | --- | --- |
 | Full Python suite | **147 passed**, 0 failed, 0 skipped, 65.69 seconds |
 | React components | **6 passed** |
-| Chrome browser/accessibility flows | **2 passed**, 8.8 seconds |
+| Chrome browser/accessibility flows | **2 passed**, 7.9 seconds after keyboard-check update |
 | Production frontend build | Passed |
 | Clean `npm ci` | Passed; lockfile install completed, audit reported 0 vulnerabilities at check time |
 | Python dependency check | `No broken requirements found.` |
@@ -33,6 +33,7 @@ statistical decision rules, and evaluation protocol were not changed.
 | Live production page | HTTP 200 |
 | Live model readiness | Unavailable, correctly reflecting missing real artifacts |
 | Live corrupt upload | Clear HTTP 422 |
+| GitHub Actions | Frontend and Python 3.11/3.13 jobs all passed for `ebaedb3` ([run](https://github.com/Rahul2-5/SpectraCheck/actions/runs/40633198358)) |
 
 Commands ran from the repository root (frontend commands from app/frontend):
 
@@ -101,5 +102,6 @@ real-dataset accuracy or complete the pending team/supervisor gates.
 
 The initial review CI run for `85c1540` passed both Python versions and the
 frontend component/build steps, but its keyboard file-picker browser test timed
-out on Linux Chrome. The targeted keyboard test update passes locally; the
-replacement CI result is pending until verified.
+out on Linux Chrome. The targeted keyboard test update passes locally and on
+Linux CI. All three replacement jobs passed for code commit
+`ebaedb3c1e1223eff4b07551b880a307f1df63e6`; see the linked run above.

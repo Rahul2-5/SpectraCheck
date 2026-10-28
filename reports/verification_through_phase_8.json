@@ -15,7 +15,7 @@
     "python_seconds": 65.69,
     "react_passed": 6,
     "browser_passed": 2,
-    "browser_seconds": 8.8,
+    "browser_seconds": 7.9,
     "production_build": "passed",
     "pip_check": "No broken requirements found.",
     "notebook_json_ids_ast": "passed",
@@ -47,13 +47,21 @@
     "real-model UI parity",
     "physical device testing"
   ],
-  "remote_ci_verified_for_this_review": false,
+  "remote_ci_verified_for_this_review": true,
+  "verified_ci": {
+    "commit": "ebaedb3c1e1223eff4b07551b880a307f1df63e6",
+    "run_id": 40633198358,
+    "url": "https://github.com/Rahul2-5/SpectraCheck/actions/runs/40633198358",
+    "frontend": "passed",
+    "python_3_11": "passed",
+    "python_3_13": "passed"
+  },
   "initial_review_ci": {
     "commit": "85c1540e44f8798d670f48a6078e817e0e5395b6",
     "run_id": 40632577484,
     "python_3_11": "passed",
     "python_3_13": "passed",
     "frontend_components_and_build": "passed",
-    "browser": "keyboard file-picker timeout; targeted update pending CI"
+    "browser": "keyboard file-picker timeout; resolved by targeted keyboard test update in verified_ci"
   }
 }
