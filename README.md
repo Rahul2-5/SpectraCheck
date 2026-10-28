@@ -10,13 +10,13 @@ finding. This is a single-generator study, not proof of image authenticity.
 
 ## Current stage
 
-Phases 0-6 code is implemented: foundation, acquisition, metadata audit and
-frozen group-preserving splits, shared image preprocessing, handcrafted
-frequency features, resumable feature extraction, and train/validation-only
-model selection. The team still runs the real-data steps in Colab; no real
-research split, feature batches, training results, or data review has been
-verified here. Read [AGENTS.md](AGENTS.md), the phase reports, and the PRD
-before proceeding. User policy: commit and push changes to `main` only.
+Phases 0-8 software is implemented, including the one-shot evaluation protocol
+and local React/Python prototype. The user authorized Phase 8 code development
+while real-data checks remain pending. No real model, held-out result, or team
+review is claimed. The app permits previewing an image and reports model
+unavailability honestly until its frozen model bundle is supplied. Read
+[AGENTS.md](AGENTS.md) and the phase reports before proceeding. Phase 9 has not
+started. User policy: commit and push changes to `main` only.
 
 ## What the folders are for
 
@@ -27,7 +27,7 @@ before proceeding. User policy: commit and push changes to `main` only.
 | `tests/` | Small automatic checks that need no dataset or internet |
 | `scripts/` | Acquisition, audit, split, feature-extraction, and Phase 6 training commands |
 | `notebooks/colab_runner.ipynb` | Team's step-by-step runner in free Colab |
-| `app/` | Future React frontend and local Python prediction API |
+| `app/` | React frontend and local Python prediction API |
 | `reports/` | Phase reports and, later, research results |
 | `artifacts/` | Provenance hashes and, later, model-selection/freeze records |
 | `docs/` | Shared report template |
@@ -342,13 +342,21 @@ do not generate a fake research split hash in this repository.
 
 ## Remaining phases
 
-1. Freeze, single evaluation, and hypothesis tests (Phase 7).
-2. Local demo (Phase 8).
-3. Report pack and reproduction guide (Phase 9).
+Phase 9 (report pack and reproduction guide) is not started. Real-data execution
+and team review from earlier phases still remain pending and must not be inferred
+from the completed software.
 
-The user's updated Phase 8 choice is React. Planned folders are `app/frontend/`
-for the interface and `app/backend/` for the local Python API. The API will reuse
-the same preprocessing, frequency features, and saved model used in evaluation.
-The browser will show the prediction, calibrated score, and spectrum plots.
-Frontend/API dependencies and run commands will be added during Phase 8.
-See [recorded decisions](docs/DECISIONS.md) for this PRD override.
+## Run the React demo locally
+
+```powershell
+npm.cmd --prefix app/frontend ci
+npm.cmd --prefix app/frontend run build
+.\.venv\Scripts\python.exe -m uvicorn app.backend.main:app --host 127.0.0.1 --port 8000
+```
+
+Open **http://127.0.0.1:8000**. Install the Python requirements/editable package
+first using the local setup instructions above. Node 22.12+ is required.
+The interface works without a model for image preview; analysis stays disabled
+until the reviewed frozen model bundle is present. No demonstration scores are
+invented. See [app setup and API contract](app/README.md), the
+[Phase 8 report](reports/phase_8_report.md), and [recorded decisions](docs/DECISIONS.md).

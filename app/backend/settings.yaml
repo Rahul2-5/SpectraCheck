@@ -1,0 +1,5 @@
+# Serving settings stay separate from the frozen research configuration.
+max_upload_bytes: 10485760
+max_image_pixels: 40000000
+allowed_formats: [JPEG, PNG, WEBP]
+frontend_dist: app/frontend/dist

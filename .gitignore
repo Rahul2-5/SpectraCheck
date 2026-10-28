@@ -7,6 +7,11 @@ __pycache__/
 build/
 dist/
 .ipynb_checkpoints/
+node_modules/
+.vite/
+playwright-report/
+test-results/
+.browser-cache/
 
 # Real research data/features/models belong on Drive, never in Git.
 data/
