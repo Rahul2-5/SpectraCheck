@@ -84,7 +84,9 @@ export default function App() {
     setBusy(true); setError(''); setResult(null);
     try {
       const response = await fetch('/api/analyze', { method: 'POST', headers: { 'Content-Type': file.type }, body: file, signal: controller.signal });
-      const data = await response.json();
+      let data;
+      try { data = await response.json(); }
+      catch { throw new Error('The local service could not complete the analysis. Please try again.'); }
       if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'This image could not be analyzed. Try another image.');
       if (sequence.current === id) { setResult(data); resultHeading.current?.focus(); }
     } catch (err) { if (err.name !== 'AbortError' && sequence.current === id) setError(err.message === 'Failed to fetch' ? 'The local service disconnected. Check the connection and try again.' : err.message); }

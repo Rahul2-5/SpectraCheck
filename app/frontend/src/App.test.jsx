@@ -67,4 +67,15 @@ describe('analysis workspace', () => {
     expect(screen.queryByText('photo.png')).not.toBeInTheDocument();
     expect(screen.getByText('Awaiting image')).toBeInTheDocument();
   });
+  it('gives a clear message when the service returns an HTML error page', async () => {
+    vi.stubGlobal('fetch', vi.fn(async url => url.endsWith('health') ? response(health) : {
+      ok: false, status: 502, json: async () => { throw new SyntaxError('Unexpected token <'); },
+    }));
+    render(<App />);
+    await waitFor(() => expect(screen.queryByText('Connecting to local service…')).not.toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText('Choose an image'), { target: { files: [new File(['x'], 'image.png', { type: 'image/png' })] } });
+    await userEvent.click(screen.getByRole('button', { name: /analyze image/i }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('The local service could not complete the analysis. Please try again.');
+    expect(screen.queryByRole('meter')).not.toBeInTheDocument();
+  });
 });

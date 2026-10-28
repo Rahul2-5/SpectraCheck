@@ -122,3 +122,17 @@ def test_version_mismatch_warns_and_selected_model_is_required(bundle):
     primary["selection_metric"] = "test_accuracy"
     primary_file.write_text(json.dumps(primary))
     assert not service.health()["ready"]
+
+
+def test_inference_runtime_error_is_a_clear_service_error(bundle, monkeypatch):
+    root, _, settings, service, payload = bundle
+
+    def failed_inference(_payload):
+        raise RuntimeError("Internal model compatibility failure")
+
+    monkeypatch.setattr(service, "analyze", failed_inference)
+    client = TestClient(create_app(root, service=service, settings=settings))
+    response = client.post("/api/analyze", content=payload)
+    assert response.status_code == 503
+    assert "model" in response.json()["detail"].lower()
+    assert "Internal model" not in response.json()["detail"]

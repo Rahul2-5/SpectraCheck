@@ -1,6 +1,7 @@
 """Run: python -m uvicorn app.backend.main:app --host 127.0.0.1 --port 8000."""
 
 from pathlib import Path
+import logging
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
@@ -46,7 +47,8 @@ def create_app(root: str | Path = ROOT, *, service=None, settings: dict | None =
             if "smaller than target" in str(exc).lower() or "decode image" in str(exc).lower():
                 raise HTTPException(422, str(exc)) from exc
             raise HTTPException(503, "The model bundle could not be verified. Check the local setup.") from exc
-        except (OSError, KeyError, TypeError, ImportError) as exc:
+        except Exception as exc:
+            logging.getLogger(__name__).exception("Local model inference failed")
             raise HTTPException(503, "The model could not be loaded. Check the local setup and library versions.") from exc
 
     dist = root / settings["frontend_dist"]

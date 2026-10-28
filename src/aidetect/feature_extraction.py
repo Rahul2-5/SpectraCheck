@@ -297,6 +297,17 @@ def feature_output_dir(features_root: str | Path, split: str) -> Path:
     return root / "test_sealed" if split == "test" else root / split
 
 
+def _source_payload(record: Mapping[str, Any], data_root: Path) -> bytes:
+    """Read one contained image and verify its audited bytes when recorded."""
+    path = (data_root / str(record["rel_path"])).resolve()
+    if not path.is_relative_to(data_root):
+        raise ValueError("Image path resolves outside the data root")
+    payload = path.read_bytes()
+    if "sha256" in record and record["sha256"] != hashlib.sha256(payload).hexdigest():
+        raise ValueError(f"Source image bytes changed after audit: {record['id']}")
+    return payload
+
+
 def extract_split_features(
     rows: pd.DataFrame,
     *,
@@ -332,7 +343,7 @@ def extract_split_features(
     ordered["id"] = ordered["id"].astype(str)
     ordered = ordered.sort_values("id").reset_index(drop=True)
     output_dir = feature_output_dir(features_root, split)
-    data_root_path = Path(data_root)
+    data_root_path = Path(data_root).resolve()
     written = skipped = 0
     timings: list[dict[str, Any]] = []
     for batch_index, start in enumerate(range(0, len(ordered), batch_size)):
@@ -349,6 +360,8 @@ def extract_split_features(
                 batch_index=batch_index,
                 batch_ids_hash=batch_ids_hash,
             )
+            for record in batch.to_dict(orient="records"):
+                _source_payload(record, data_root_path)
             skipped += 1
             timings.append(
                 {"batch_index": batch_index, "rows": len(batch), "status": "skipped", "seconds": 0.0}
@@ -358,8 +371,8 @@ def extract_split_features(
         rows_for_file: list[dict[str, Any]] = []
         first_summary: dict[str, Any] | None = None
         for record in batch.to_dict(orient="records"):
-            image_path = data_root_path / str(record["rel_path"])
-            summary = summarize_preprocessed_image(preprocess_image(image_path, cfg), cfg)
+            payload = _source_payload(record, data_root_path)
+            summary = summarize_preprocessed_image(preprocess_image(payload, cfg), cfg)
             if first_summary is None:
                 first_summary = summary
             elif (

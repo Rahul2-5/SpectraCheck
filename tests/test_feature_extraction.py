@@ -150,14 +150,19 @@ def test_extract_features_script_joins_manifest_and_split_hash(tmp_path):
     split_rows[["id", "label", "split", "group_id"]].to_csv(
         split_path, index=False, lineterminator="\n"
     )
-    split_rows[["id", "rel_path"]].to_csv(
+    active = split_rows[["id", "rel_path", "label", "group_id"]].copy()
+    active["sha256"] = [sha256_of_file(data_root / relative) for relative in active["rel_path"]]
+    active.to_csv(
         data_root / "audit" / "active_manifest.csv", index=False, lineterminator="\n"
     )
+    active_digest = sha256_of_file(data_root / "audit" / "active_manifest.csv")
+    (data_root / "audit" / "audit_result.json").write_text(json.dumps({"status": "passed", "active_manifest_sha256": active_digest}))
     artifacts_root = tmp_path / "artifacts"
     artifacts_root.mkdir()
     (artifacts_root / "splits.sha256").write_text(
         sha256_of_file(split_path) + "\n", encoding="utf-8"
     )
+    (artifacts_root / "splits.json").write_text(json.dumps({"splits_sha256": sha256_of_file(split_path), "active_manifest_sha256": active_digest}))
     features_root = tmp_path / "features"
     cfg = _cfg()
     cfg["paths"] = {
@@ -187,3 +192,74 @@ def test_extract_features_script_joins_manifest_and_split_hash(tmp_path):
     assert output["rows"] == 2
     assert output["written_batches"] == 2
     assert output["splits_sha256"] == sha256_of_file(split_path)
+
+
+def test_extraction_command_refuses_missing_frozen_ids(tmp_path):
+    import runpy
+    root = tmp_path / "data"
+    (root / "audit").mkdir(parents=True)
+    rows = _rows()
+    rows[["id", "label", "split", "group_id"]].to_csv(root / "splits.csv", index=False)
+    active = rows.iloc[:1][["id", "rel_path", "label", "group_id"]].copy()
+    active["sha256"] = "synthetic"
+    active.to_csv(root / "audit/active_manifest.csv", index=False)
+    (root / "audit/audit_result.json").write_text(json.dumps({"status": "passed", "active_manifest_sha256": sha256_of_file(root / "audit/active_manifest.csv")}))
+    load_rows = runpy.run_path(str(Path(__file__).parents[1] / "scripts/extract_features.py"))["_load_rows"]
+    with pytest.raises(ValueError, match="IDs"):
+        load_rows(root, "train")
+
+
+@pytest.mark.parametrize("problem", ["changed-bytes", "outside-root"])
+def test_extraction_refuses_changed_or_external_image(tmp_path, problem):
+    data_root = tmp_path / "data"
+    _write_images(data_root)
+    rows = _rows()
+    rows["sha256"] = [sha256_of_file(data_root / relative) for relative in rows["rel_path"]]
+    if problem == "changed-bytes":
+        path = data_root / rows.iloc[0]["rel_path"]
+        Image.new("L", (32, 32), 17).save(path)
+    else:
+        external = tmp_path / "external.png"
+        external.write_bytes((data_root / rows.iloc[0]["rel_path"]).read_bytes())
+        rows.loc[rows.index[0], "rel_path"] = "../external.png"
+    with pytest.raises(ValueError, match="changed|outside"):
+        extract_split_features(rows, data_root=data_root, features_root=tmp_path / "features",
+            cfg=_cfg(), split="train", config_digest="config", splits_digest="splits")
+
+
+@pytest.mark.parametrize("problem", ["audit-hash", "frozen-hash", "label", "group_id"])
+def test_extraction_command_checks_audit_and_assignment_provenance(tmp_path, problem):
+    import runpy
+    root = tmp_path / "data"
+    (root / "audit").mkdir(parents=True)
+    rows = _rows()
+    rows[["id", "label", "split", "group_id"]].to_csv(root / "splits.csv", index=False)
+    active = rows[["id", "rel_path", "label", "group_id"]].copy()
+    active["sha256"] = "synthetic"
+    if problem == "label":
+        active.loc[active.index[0], "label"] = 1 - active.loc[active.index[0], "label"]
+    if problem == "group_id":
+        active.loc[active.index[0], "group_id"] = "different-group"
+    active.to_csv(root / "audit/active_manifest.csv", index=False)
+    digest = sha256_of_file(root / "audit/active_manifest.csv")
+    (root / "audit/audit_result.json").write_text(json.dumps({"status": "passed", "active_manifest_sha256": "bad" if problem == "audit-hash" else digest}))
+    load_rows = runpy.run_path(str(Path(__file__).parents[1] / "scripts/extract_features.py"))["_load_rows"]
+    with pytest.raises(ValueError, match="audit|provenance|label|group_id"):
+        load_rows(root, "train", expected_active_digest="bad" if problem == "frozen-hash" else digest)
+
+
+def test_resume_rechecks_original_bytes_without_reprocessing(tmp_path, monkeypatch):
+    data_root, features_root = tmp_path / "data", tmp_path / "features"
+    _write_images(data_root)
+    rows = _rows()
+    rows["sha256"] = [sha256_of_file(data_root / relative) for relative in rows["rel_path"]]
+    kwargs = dict(data_root=data_root, features_root=features_root, cfg=_cfg(), split="train",
+                  config_digest="config", splits_digest="splits")
+    extract_split_features(rows, **kwargs)
+    files = list((features_root / "train").glob("*.parquet"))
+    before = {p: p.stat().st_mtime_ns for p in files}
+    (data_root / rows.iloc[0]["rel_path"]).write_bytes(b"changed source bytes")
+    monkeypatch.setattr("aidetect.feature_extraction.preprocess_image", lambda *a: pytest.fail("Resume reprocessed image"))
+    with pytest.raises(ValueError, match="changed"):
+        extract_split_features(rows, **kwargs)
+    assert before == {p: p.stat().st_mtime_ns for p in files}

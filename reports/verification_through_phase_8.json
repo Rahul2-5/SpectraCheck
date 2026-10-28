@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-28",
+  "baseline_commit": "12a2eb8",
+  "scope": "verification and fixes through Phase 8; Phase 9 not started",
+  "baseline": {
+    "python_passed": 137,
+    "react_passed": 5,
+    "browser_passed": 2,
+    "clean_npm_ci": true
+  },
+  "final": {
+    "python_passed": 147,
+    "python_failed": 0,
+    "python_skipped": 0,
+    "python_seconds": 65.69,
+    "react_passed": 6,
+    "browser_passed": 2,
+    "browser_seconds": 8.8,
+    "production_build": "passed",
+    "pip_check": "No broken requirements found.",
+    "notebook_json_ids_ast": "passed",
+    "live_http": {
+      "page": 200,
+      "model_ready": false,
+      "corrupt_upload": 422
+    }
+  },
+  "connected_synthetic_pipeline": "audit, grouped splits, CLI extraction for all splits, six-model training, freeze, one evaluation, second-use refusal, API parity",
+  "fixes": [
+    "exact active/frozen ID, label and group parity",
+    "audit and frozen active-manifest hash checks",
+    "source-image SHA-256 checks including resume",
+    "source path containment",
+    "structured model inference failure",
+    "friendly non-JSON API error"
+  ],
+  "research_config_sha256": "ce79d3ef5f012768bbc377db9cdd9226377a1449a13a7725d9d49189f3549dce",
+  "real_research_data_or_models_used": false,
+  "real_evaluation_artifacts_changed": false,
+  "physical_phone_tested": false,
+  "pending": [
+    "real Colab acquisition/audit/splits",
+    "real feature extraction/training",
+    "agreed practical target",
+    "real freeze/evaluation and team review",
+    "real-model UI parity",
+    "physical device testing"
+  ],
+  "remote_ci_verified_for_this_review": false
+}
