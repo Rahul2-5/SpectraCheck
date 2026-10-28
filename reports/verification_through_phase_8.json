@@ -32,7 +32,8 @@
     "source-image SHA-256 checks including resume",
     "source path containment",
     "structured model inference failure",
-    "friendly non-JSON API error"
+    "friendly non-JSON API error",
+    "focused keyboard file-picker browser check and retained CI diagnostics"
   ],
   "research_config_sha256": "ce79d3ef5f012768bbc377db9cdd9226377a1449a13a7725d9d49189f3549dce",
   "real_research_data_or_models_used": false,
@@ -46,5 +47,13 @@
     "real-model UI parity",
     "physical device testing"
   ],
-  "remote_ci_verified_for_this_review": false
+  "remote_ci_verified_for_this_review": false,
+  "initial_review_ci": {
+    "commit": "85c1540e44f8798d670f48a6078e817e0e5395b6",
+    "run_id": 40632577484,
+    "python_3_11": "passed",
+    "python_3_13": "passed",
+    "frontend_components_and_build": "passed",
+    "browser": "keyboard file-picker timeout; targeted update pending CI"
+  }
 }

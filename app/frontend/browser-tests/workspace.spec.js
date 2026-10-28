@@ -17,9 +17,12 @@ test('desktop and mobile workspace remain accessible without a model', async ({ 
   await page.screenshot({ path: 'test-results/workspace-mobile.png', fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
-  await page.getByRole('button', { name: 'Choose an image' }).focus();
+  const chooseImage = page.getByRole('button', { name: 'Choose an image' });
+  await chooseImage.scrollIntoViewIfNeeded();
+  await chooseImage.focus();
+  await expect(chooseImage).toBeFocused();
   const opening = page.waitForEvent('filechooser');
-  await page.keyboard.press('Enter');
+  await chooseImage.press('Enter');
   await (await opening).setFiles([]);
 });
 

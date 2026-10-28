@@ -11,6 +11,7 @@
 | A relative image path could resolve outside the configured data directory | Resolve and check path containment before reading | Process only the intended collection |
 | A model runtime error could escape as an unstructured server failure | Log diagnostics server-side and return a clear 503 model-service response | Keep the app usable without exposing internal errors |
 | An HTML/proxy error could show `Unexpected token <` | Show a readable retry message without a fabricated result | Give users actionable feedback |
+| Linux CI timed out on a page-level keyboard file-picker event | Scroll and focus the upload control, assert focus, and press Enter on that control; retain browser failure traces | Exercise the intended keyboard target and preserve useful diagnostics |
 
 The failure cases were reproduced with new tests before the fixes. The existing
 137-test baseline passed, showing why these additional boundary tests mattered.
@@ -97,3 +98,8 @@ Phase 9 remains separate and must use saved real outputs only.
 The implemented software now passes the checked Phases 0-8 paths and the added
 integrity/error cases. This is software verification; it does not establish
 real-dataset accuracy or complete the pending team/supervisor gates.
+
+The initial review CI run for `85c1540` passed both Python versions and the
+frontend component/build steps, but its keyboard file-picker browser test timed
+out on Linux Chrome. The targeted keyboard test update passes locally; the
+replacement CI result is pending until verified.
