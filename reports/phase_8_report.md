@@ -108,7 +108,7 @@ research pipeline; the React demo runs locally.
 4. Check a text file renamed .jpg, undersized image, unsupported file, too-large upload, offline API, long file name, replacement/removal during analysis and keyboard-only operation.
 5. On a physical phone, verify touch feedback, zoom, orientation and safe areas. This remains unverified here; use an explicitly authorized local-device setup if sharing the laptop service on a LAN.
 6. Note phone-photo/screenshot/compressed-image behavior as out-of-scope limitations. A model score is not authenticity proof.
-7. Inspect the pushed commit's Python/frontend CI results. No remote Phase 8 CI success is claimed here.
+7. GitHub Actions passed for code commit `c58a4d5dcab52c50fb4b4920807c08b2ab45d4ab`: frontend and Python 3.11/3.13 jobs succeeded. [Verified run](https://github.com/Rahul2-5/SpectraCheck/actions/runs/40630517861); details are recorded in phase_8_checks.json.
 
 ## Assumptions and unverified items
 
@@ -117,7 +117,7 @@ research pipeline; the React demo runs locally.
 - Serving checks only model/config/selection/version/package files. It deliberately does not call the complete evaluator verification routine, which also inspects sealed-batch metadata; app inference needs no test data.
 - Exact pinned library versions do not guarantee cross-platform model compatibility. Mismatches are shown, and missing/failed verification blocks predictions.
 - The UI supports jpg/jpeg/png/webp via actual encoded format validation. The configured default bounds are 10 MiB and 40 million pixels.
-- Real-model parity, real prediction quality, supervisor sign-off, physical device feel and remote CI remain pending.
+- Real-model parity, real prediction quality, supervisor sign-off, physical device feel remain pending. Remote CI for the implementation commit passed; this is software validation, not real-data review.
 
 Technical references consulted: [FastAPI direct requests](https://fastapi.tiangolo.com/advanced/using-request-directly/), [Vite setup](https://vite.dev/guide/), and [React effect cleanup](https://react.dev/reference/react/useEffect). Installed API signatures were inspected. UI skills informed design choices; no skill sent messages or published external content.
 

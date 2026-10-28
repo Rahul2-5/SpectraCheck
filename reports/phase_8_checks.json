@@ -91,10 +91,20 @@
   ],
   "physical_phone_tested": false,
   "real_model_or_test_outputs_generated": false,
-  "remote_ci_verified": false,
+  "remote_ci_verified": true,
   "sources": [
     "https://fastapi.tiangolo.com/advanced/using-request-directly/",
     "https://vite.dev/guide/",
     "https://react.dev/reference/react/useEffect"
-  ]
+  ],
+  "github_actions": {
+    "code_commit": "c58a4d5dcab52c50fb4b4920807c08b2ab45d4ab",
+    "run_id": 40630517861,
+    "url": "https://github.com/Rahul2-5/SpectraCheck/actions/runs/40630517861",
+    "jobs": {
+      "frontend": "success",
+      "pytest (3.11)": "success",
+      "pytest (3.13)": "success"
+    }
+  }
 }
