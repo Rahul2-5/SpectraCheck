@@ -1,5 +1,7 @@
 # Phase 5 report
 
+Latest R2 continuation: the user authorized Phase 5 on 30 October 2026. R2 notebook preparation is ready and 29 focused tests pass; live execution remains unverified because Colab output rendering and browser control failed. See [phase_5_r2_report.md](phase_5_r2_report.md). The historical implementation record below does not establish real R2 extraction completion.
+
 Status: **Pixel baseline and resumable feature-extraction code are complete and locally verified. Real-data extraction, batch timings, split row counts, and remote CI remain pending team checks.**
 
 ## Done
