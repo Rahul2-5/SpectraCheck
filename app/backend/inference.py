@@ -23,12 +23,14 @@ import sklearn
 import xgboost
 
 from aidetect.evaluate import _positive_probabilities
-from aidetect.features import extract_frequency_features, power_spectrum
+from aidetect.features import extract_frequency_features, power_spectrum, rapsd, spectral_entropy
 from aidetect.io_utils import config_hash, load_config, sha256_of_file
 from aidetect.preprocess import preprocess_image
 
 DISCLAIMER = ("Model score for one Stable Diffusion v1.5 dataset; not proof of authenticity; "
               "may be wrong on other generators, screenshots or compressed images.")
+_BUNDLE_ERRORS = (OSError, ValueError, KeyError, TypeError, ImportError,
+                  pickle.UnpicklingError, EOFError, AttributeError)
 
 
 def runtime_versions() -> dict[str, str]:
@@ -112,20 +114,87 @@ class InferenceService:
                 self._cache = (identity, cfg, choice, primary, model, version_warnings)
             return self._cache
 
+    def _feature_analysis_config(self) -> dict[str, Any]:
+        """Load and validate only the configuration needed for feature analysis."""
+        cfg = load_config(self.root / "config.yaml")
+        if not isinstance(cfg.get("image_size"), int) or cfg["image_size"] < 1:
+            raise ValueError("Feature analysis requires a positive image_size.")
+        frequency = cfg.get("frequency")
+        if not isinstance(frequency, dict):
+            raise ValueError("Feature analysis requires frequency settings.")
+        rings = cfg.get("rapsd_rings")
+        if not isinstance(rings, int) or rings < 1:
+            raise ValueError("Feature analysis requires positive rapsd_rings.")
+        return cfg
+
+    def _feature_analysis(self, payload: bytes, cfg: dict[str, Any]) -> dict[str, Any]:
+        """Return model-independent preprocessing and frequency diagnostics."""
+        image = preprocess_image(payload, cfg)
+        frequency = cfg["frequency"]
+        power = power_spectrum(image, window=frequency["hann_window"])
+        entropy = spectral_entropy(power, epsilon=frequency["epsilon"])
+        rapsd_values = rapsd(power, cfg["rapsd_rings"], epsilon=frequency["epsilon"])
+
+        log_power = np.log10(power + frequency["epsilon"])
+        span = float(np.ptp(log_power))
+        display = (
+            np.zeros_like(log_power, dtype=np.uint8)
+            if span == 0
+            else np.rint((log_power - log_power.min()) / span * 255).astype(np.uint8)
+        )
+        buffer = BytesIO()
+        Image.fromarray(display).save(buffer, format="PNG")
+        rings = cfg["rapsd_rings"]
+        edges = np.linspace(1.0, cfg["image_size"] // 2, rings + 1)
+        return {
+            "mode": "feature_analysis",
+            "model_available": False,
+            "label": None,
+            "prediction": None,
+            "ai_probability": None,
+            "model": None,
+            "processed_size": cfg["image_size"],
+            "warnings": [],
+            "disclaimer": DISCLAIMER,
+            "feature_analysis": {
+                "spectral_entropy": float(entropy),
+                "rapsd_ring_count": int(len(rapsd_values)),
+            },
+            "spectrum_png": "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode("ascii"),
+            "rapsd": {
+                "radius": ((edges[:-1] + edges[1:]) / 2).tolist(),
+                "log_power": rapsd_values.tolist(),
+            },
+        }
+
     def health(self) -> dict[str, Any]:
         cfg = load_config(self.root / "config.yaml")
         base = {"min_image_side": cfg["image_size"], "max_upload_bytes": self.settings["max_upload_bytes"],
                 "disclaimer": DISCLAIMER}
         try:
+            self._feature_analysis_config()
+            feature_available = True
+            feature_message = None
+        except _BUNDLE_ERRORS as exc:
+            feature_available = False
+            feature_message = f"Feature analysis is unavailable: {exc}"
+        try:
             _, _, _, primary, _, notes = self._bundle()
-            return {**base, "ready": True, "model": primary["artifact_key"], "warnings": notes}
-        except (OSError, ValueError, KeyError, TypeError, ImportError, pickle.UnpicklingError, EOFError, AttributeError):
+            return {**base, "ready": True, "model": primary["artifact_key"], "warnings": notes,
+                    "feature_analysis_available": feature_available,
+                    "feature_analysis_message": feature_message}
+        except _BUNDLE_ERRORS:
             return {**base, "ready": False, "model": None, "warnings": [],
+                    "feature_analysis_available": feature_available,
+                    "feature_analysis_message": feature_message,
                     "message": "A reviewed model bundle is not available. See the local setup instructions."}
 
     def analyze(self, payload: bytes) -> dict[str, Any]:
         inspect_upload(payload, self.settings)
-        _, cfg, choice, primary, model, notes = self._bundle()
+        try:
+            _, cfg, choice, primary, model, notes = self._bundle()
+        except _BUNDLE_ERRORS:
+            return self._feature_analysis(payload, self._feature_analysis_config())
         image = preprocess_image(payload, cfg)
         values = extract_frequency_features(image, cfg, r0=choice["r0"], k_mad=choice["k_mad"])
         predicted, positive = _positive_probabilities(model, values.reshape(1, -1), primary["artifact_key"])

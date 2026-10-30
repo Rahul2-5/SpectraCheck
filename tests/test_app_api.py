@@ -15,7 +15,7 @@ import yaml
 
 from aidetect.evaluate import _positive_probabilities
 from aidetect.feature_extraction import _row_from_summary, summarize_preprocessed_image
-from aidetect.features import extract_frequency_features
+from aidetect.features import extract_frequency_features, power_spectrum, rapsd, spectral_entropy
 from aidetect.io_utils import config_hash, load_config, sha256_of_file
 from aidetect.preprocess import preprocess_image
 from aidetect.train import make_frequency_matrix
@@ -97,12 +97,37 @@ def test_small_and_unsupported_images(bundle):
 def test_missing_model_and_changed_inputs_fail_closed(bundle):
     root, _, settings, service, payload = bundle
     client = TestClient(create_app(root, service=service, settings=settings))
-    assert client.get("/api/health").json()["ready"] is True
+    assert client.get("/api/health").json()["feature_analysis_available"] is True
     (root / "artifacts/models/frequency_rf.joblib").write_bytes(b"changed model")
-    assert client.get("/api/health").json()["ready"] is False
-    assert client.post("/api/analyze", content=payload).status_code == 503
+    health = client.get("/api/health").json()
+    assert health["ready"] is False and health["feature_analysis_available"] is True
+    response = client.post("/api/analyze", content=payload)
+    assert response.status_code == 200
+    result = response.json()
+    assert result["mode"] == "feature_analysis"
+    assert result["model_available"] is False
+    assert result["prediction"] is None and result["ai_probability"] is None
+    assert result["label"] is None and result["model"] is None
+    assert result["feature_analysis"]["rapsd_ring_count"] == 8
     (root / "artifacts/FREEZE.lock").unlink()
     assert service.health()["ready"] is False
+
+
+def test_feature_analysis_matches_shared_frequency_functions_without_model(bundle):
+    root, cfg, settings, service, payload = bundle
+    (root / "artifacts/FREEZE.lock").unlink()
+    response = TestClient(create_app(root, service=service, settings=settings)).post(
+        "/api/analyze", content=payload
+    )
+    assert response.status_code == 200
+    result = response.json()
+    image = preprocess_image(payload, cfg)
+    power = power_spectrum(image, window=cfg["frequency"]["hann_window"])
+    expected_entropy = spectral_entropy(power, epsilon=cfg["frequency"]["epsilon"])
+    expected_rapsd = rapsd(power, cfg["rapsd_rings"], epsilon=cfg["frequency"]["epsilon"])
+    assert result["feature_analysis"]["spectral_entropy"] == pytest.approx(expected_entropy)
+    np.testing.assert_allclose(result["rapsd"]["log_power"], expected_rapsd)
+    assert result["spectrum_png"].startswith("data:image/png;base64,")
 
 
 def test_version_mismatch_warns_and_selected_model_is_required(bundle):

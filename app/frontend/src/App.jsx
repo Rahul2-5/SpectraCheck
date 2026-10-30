@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 export const DISCLAIMER = 'Model score for one Stable Diffusion v1.5 dataset; not proof of authenticity; may be wrong on other generators, screenshots or compressed images.';
+export const FEATURE_ONLY_NOTICE = 'Research model not connected. AI vs Real prediction is unavailable. The visualizations below show model-independent frequency analysis.';
 const FORMATS = ['image/jpeg', 'image/png', 'image/webp'];
 
 function Icon({ name = 'arrow', size = 20, ...props }) {
@@ -33,6 +34,17 @@ function Result({ result, busy }) {
     <h3>{busy ? 'Looking a little closer…' : 'Every image has a frequency signature.'}</h3>
     <p>{busy ? 'Preparing your image and measuring its spectral patterns.' : 'Add an image to explore its patterns and see how the research model classifies it.'}</p>
     <div className="empty-steps"><span><b>01</b> Prepare image</span><span><b>02</b> Inspect spectrum</span><span><b>03</b> Estimate class</span></div>
+  </div>;
+  if (result.mode === 'feature_analysis') return <div className="result-content">
+    <div className="verdict"><span className="eyebrow">FEATURE ANALYSIS MODE</span><h3>Feature analysis only</h3><p>No classification model was used for this analysis.</p></div>
+    <div className="notice feature-notice" role="status"><Icon name="info" /><p>{FEATURE_ONLY_NOTICE}</p></div>
+    <div className="feature-stats" aria-label="Extracted image features">
+      <div><span>Processed image</span><strong>{result.processed_size} × {result.processed_size}</strong></div>
+      <div><span>Spectral entropy</span><strong>{Number.isFinite(result.feature_analysis?.spectral_entropy) ? result.feature_analysis.spectral_entropy.toFixed(4) : '—'}</strong></div>
+      <div><span>RAPSD rings</span><strong>{result.feature_analysis?.rapsd_ring_count ?? '—'}</strong></div>
+    </div>
+    <div className="spectrum-grid"><figure className="spectrum-figure"><img src={result.spectrum_png} alt="Centered log-power spectrum of the uploaded image. Brighter regions indicate greater power." /><figcaption>Log-power spectrum</figcaption></figure><div className="spectrum-copy"><span className="eyebrow">FREQUENCY VIEW</span><h4>A different view of the same image.</h4><p>The center represents broad shapes. Patterns farther out represent finer detail.</p></div></div>
+    <div className="plot-title"><h4>Radial power profile</h4><span>RAPSD</span></div><RapsdPlot data={result.rapsd} />
   </div>;
   return <div className="result-content">
     <div className="verdict"><span className="eyebrow">MODEL CLASSIFICATION</span><h3>{result.label}</h3><p>The selected research model’s prediction for this image.</p></div>
@@ -92,7 +104,7 @@ export default function App() {
     } catch (err) { if (err.name !== 'AbortError' && sequence.current === id) setError(err.message === 'Failed to fetch' ? 'The local service disconnected. Check the connection and try again.' : err.message); }
     finally { if (sequence.current === id) setBusy(false); }
   }
-  const ready = health?.ready && !offline;
+  const featureAnalysisReady = health?.feature_analysis_available && !offline;
   return <div className="app-shell">
     <a className="skip-link" href="#workspace">Skip to image analysis</a>
     <header className="topbar"><a className="brand" href="#workspace" aria-label="SpectraCheck home"><FrequencyMark /><span>Spectra<span className="brand-light">Check</span><small>IMAGE FORENSICS LAB</small></span></a>
@@ -112,9 +124,9 @@ export default function App() {
           </div>
           {file && <div className="file-row"><span className="file-symbol"><Icon name="image" /></span><div><strong title={file.name}>{file.name}</strong><span>{(file.size / 1048576).toFixed(2)} MB · Ready to inspect</span></div><button className="icon-button" onClick={clear} aria-label="Remove image"><Icon name="close" size={18} /></button></div>}
           {error && <div className="notice error" role="alert"><Icon name="info" /><p>{error}</p></div>}
-          <button className="primary analyze-button" disabled={!file || !ready || busy} onClick={analyze} aria-describedby="service-note">{busy ? 'Analyzing image…' : 'Analyze image'}<Icon /></button>
+          <button className="primary analyze-button" disabled={!file || !featureAnalysisReady || busy} onClick={analyze} aria-describedby="service-note">{busy ? 'Analyzing image…' : 'Analyze image'}<Icon /></button>
           <p className="privacy-note"><Icon name="lock" size={13} />Your image stays on this computer.</p>
-          {!ready && <div className="service-note" id="service-note" role="status"><span className="dot amber" /><div><strong>{offline ? 'Local service is offline' : health ? 'Research model not connected' : 'Connecting to local service…'}</strong><p>{offline ? 'Start the local service, then reconnect.' : 'Image preview is available. Analysis needs the reviewed model bundle.'}</p><button className="text-button" onClick={() => checkHealth()}>Check connection <Icon name="refresh" size={13} /></button></div></div>}
+          {!featureAnalysisReady && <div className="service-note" id="service-note" role="status"><span className="dot amber" /><div><strong>{offline ? 'Local service is offline' : health ? 'Feature analysis not available' : 'Connecting to local service…'}</strong><p>{offline ? 'Start the local service, then reconnect.' : health ? (health.feature_analysis_message ?? 'The local feature-analysis configuration is unavailable.') : 'Image preview is available while the local service connects.'}</p><button className="text-button" onClick={() => checkHealth()}>Check connection <Icon name="refresh" size={13} /></button></div></div>}
         </section>
         <section className="analysis-panel panel" aria-labelledby="result-title"><div className="section-heading"><span className="step-number">02</span><h2 id="result-title" tabIndex={-1} ref={resultHeading}>The analysis</h2><span className={`result-status ${result ? 'complete' : ''}`} role="status">{busy ? 'Analyzing' : result ? 'Complete' : file ? 'Ready to analyze' : 'Awaiting image'}</span></div><Result result={result} busy={busy} /></section>
       </div>

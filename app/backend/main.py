@@ -38,8 +38,6 @@ def create_app(root: str | Path = ROOT, *, service=None, settings: dict | None =
             inspect_upload(encoded, settings)
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
-        if not service.health()["ready"]:
-            raise HTTPException(503, "The research model is not available yet. Check the local model bundle.")
         try:
             return await run_in_threadpool(service.analyze, encoded)
         except ValueError as exc:
