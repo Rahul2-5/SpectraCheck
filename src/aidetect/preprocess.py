@@ -32,6 +32,14 @@ PREPROCESS_VERSION = {
     "normalization_divisor": 255.0,
 }
 
+# Explicit opt-in; historical configurations retain version 1 behavior.
+R2_PREPROCESS_VERSION = {
+    "version": 2, "orientation": "exif_transpose", "color_conversion": "RGB_JPEG_then_L",
+    "crop": "fixed_center_patch", "resize_filter": "none", "undersized_policy": "reject",
+    "jpeg_quality": 96, "jpeg_subsampling": 0, "jpeg_optimize": False,
+    "jpeg_progressive": False, "output_dtype": "float64", "normalization_divisor": 255.0,
+}
+
 
 def _target_size(cfg: Mapping[str, object]) -> int:
     """Validate and return the configured square output side length."""
@@ -44,8 +52,33 @@ def _target_size(cfg: Mapping[str, object]) -> int:
 def _validate_preprocess_settings(cfg: Mapping[str, object]) -> None:
     """Reject a config that silently disagrees with the fixed pipeline."""
     configured = cfg.get("preprocess")
-    if configured is not None and configured != PREPROCESS_VERSION:
+    if configured is not None and configured not in (PREPROCESS_VERSION, R2_PREPROCESS_VERSION):
         raise ValueError("cfg['preprocess'] does not match PREPROCESS_VERSION")
+
+
+def _canonical_patch(src: ImageSource, cfg: Mapping[str, object]) -> bytes:
+    """R2's sole RGB patch/JPEG treatment, shared with its audit measurement."""
+    _validate_preprocess_settings(cfg)
+    if cfg.get("preprocess") != R2_PREPROCESS_VERSION:
+        raise ValueError("Canonical patch requires explicit R2 preprocessing")
+    target = _target_size(cfg)
+    try:
+        with _open_source(src) as image:
+            image.load()
+            rgb = ImageOps.exif_transpose(image).convert("RGB")
+            width, height = rgb.size
+            if min(width, height) < target:
+                raise ValueError("Image smaller than target; R2 never upscales")
+            left, top = (width - target) // 2, (height - target) // 2
+            patch = rgb.crop((left, top, left + target, top + target))
+            stream = BytesIO()
+            settings = cfg["preprocess"]
+            patch.save(stream, format="JPEG", quality=settings["jpeg_quality"],
+                subsampling=settings["jpeg_subsampling"], optimize=settings["jpeg_optimize"],
+                progressive=settings["jpeg_progressive"])
+            return stream.getvalue()
+    except (UnidentifiedImageError, OSError) as exc:
+        raise ValueError("Unable to decode image: corrupt or unsupported image") from exc
 
 
 def _open_source(src: ImageSource) -> Image.Image:
@@ -86,6 +119,11 @@ def preprocess_image(src: ImageSource, cfg: Mapping[str, object]) -> np.ndarray:
         raise TypeError("cfg must be a mapping containing image_size")
     _validate_preprocess_settings(cfg)
     target = _target_size(cfg)
+    if cfg.get("preprocess") == R2_PREPROCESS_VERSION:
+        # Always accept original source bytes. Never accept an audited patch cache
+        # as input: that would silently introduce a second JPEG generation.
+        with Image.open(BytesIO(_canonical_patch(src, cfg))) as image:
+            return np.ascontiguousarray(np.asarray(image.convert("L"), dtype=np.float64) / 255.0)
     grayscale = _decode_to_grayscale(src)
     try:
         width, height = grayscale.size

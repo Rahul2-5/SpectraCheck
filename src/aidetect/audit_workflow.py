@@ -70,6 +70,9 @@ def _write_audit_report(original: pd.DataFrame, before: pd.DataFrame, active: pd
 
 def run_audit(cfg: dict) -> dict:
     """Inspect the Phase 1 main collection; persist a machine-checkable pass gate."""
+    if "r2" in cfg:
+        from aidetect.r2_audit import run_r2_audit
+        return run_r2_audit(cfg)
     root = Path(cfg["paths"]["data_root"]).resolve()
     collection, output = root / "main", root / "audit"
     artifacts = Path(cfg["paths"]["artifacts_root"])
@@ -175,6 +178,12 @@ def run_split_freeze(cfg: dict) -> dict:
         path = (root / row.rel_path).resolve()
         if not path.is_relative_to(root) or sha256_of_file(path) != row.sha256:
             raise ValueError(f"Audited image changed or escaped its root: {row.id}")
+        if "r2" in cfg:
+            from hashlib import sha256
+            from aidetect.preprocess import _canonical_patch
+            if (result.get("protocol") != "R2" or result.get("audit_domain") != "treated_input"
+                or sha256(_canonical_patch(path, cfg)).hexdigest() != row.canonical_sha256):
+                raise ValueError("R2 treated-input provenance changed")
     settings = cfg["splitting"]
     splits = make_group_splits(active, cfg["split"], cfg["seed"],
         tolerance=settings["proportion_tolerance"], time_limit=settings["solver_time_limit_seconds"])

@@ -170,7 +170,7 @@ def duplicate_groups(df: pd.DataFrame, max_distance: int = 4) -> pd.Series:
         if first != second:
             parents[max(first, second)] = min(first, second)
 
-    for column in ("sha256", "original_sha256"):
+    for column in ("sha256", "original_sha256", "canonical_sha256"):
         if column in df:
             seen = {}
             for index, value in enumerate(df[column]):

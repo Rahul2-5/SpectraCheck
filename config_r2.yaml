@@ -1,0 +1,143 @@
+seed: 42
+image_size: 256
+rapsd_rings: 64
+pixel_baseline_size: 32
+positive_label: 1
+preprocess:
+  version: 2
+  orientation: exif_transpose
+  color_conversion: RGB_JPEG_then_L
+  crop: fixed_center_patch
+  resize_filter: none
+  undersized_policy: reject
+  jpeg_quality: 96
+  jpeg_subsampling: 0
+  jpeg_optimize: false
+  jpeg_progressive: false
+  output_dtype: float64
+  normalization_divisor: 255.0
+frequency:
+  hann_window: true
+  epsilon: 1.0e-12
+  mad_scale: 1.4826
+split:
+  train: 0.7
+  val: 0.15
+  test: 0.15
+paths:
+  data_root: /content/drive/MyDrive/aidetect/r2/data
+  features_root: /content/drive/MyDrive/aidetect/r2/features
+  reports_root: reports/r2
+  artifacts_root: artifacts/r2
+dataset:
+  main: TheKernel01/Tiny-GenImage
+  generator_name: SD15
+  max_real: 4000
+  source_splits:
+  - train
+  - validation
+  revision: main
+  minimum_ai_images: 1000
+pilot:
+  samples_per_class: 500
+  image_size: 32
+  source_splits:
+  - train
+  - test
+cv_folds: 5
+search_iters: 30
+alpha: 0.05
+batch_size: 500
+extraction:
+  peak_k_mad:
+  - 3
+  - 4
+  - 5
+  - 6
+  - 8
+audit:
+  shortcut_max_accuracy: 0.6
+  probe_tree_depth: 3
+  probe_logistic_max_iter: 2000
+  phash_size: 8
+  duplicate_hamming_distance: 4
+  histogram_bins: 20
+  figure_dpi: 150
+splitting:
+  proportion_tolerance: 0.01
+  solver_time_limit_seconds: 60
+training:
+  r0:
+    min: 8
+    max: 120
+    step: 8
+  model_order:
+  - svm
+  - rf
+  - xgb
+  primary_model_tie_order:
+  - svm
+  - rf
+  - xgb
+  search_n_jobs: 1
+  estimator_n_jobs: 1
+  feature_importance_top_n: 15
+  feature_importance_dpi: 300
+  scoring: accuracy
+  legacy_phase5_config_hashes: []
+  phase5_feature_contract_sha256: 1a1538d2cd0a20fc4001994201633a21c85804fa362a220f8f76d45cd01c1a31
+  calibration:
+    method: sigmoid
+  search_space:
+    svm:
+      C_loguniform:
+      - 0.01
+      - 1000.0
+      gamma_loguniform:
+      - 0.0001
+      - 1.0
+    rf:
+      n_estimators:
+      - 200
+      - 800
+      max_depth:
+      - null
+      - 5
+      - 10
+      - 20
+      min_samples_leaf:
+      - 1
+      - 10
+      max_features:
+      - sqrt
+      - 0.3
+      - 0.5
+    xgb:
+      n_estimators:
+      - 200
+      - 800
+      max_depth:
+      - 2
+      - 8
+      learning_rate_uniform:
+      - 0.01
+      - 0.3
+      subsample_uniform:
+      - 0.6
+      - 1.0
+      colsample_bytree_uniform:
+      - 0.5
+      - 1.0
+    xgb_fixed:
+      objective: binary:logistic
+      eval_metric: logloss
+      tree_method: hist
+      verbosity: 0
+r2:
+  source_data_root: /content/drive/MyDrive/aidetect/data
+  source_audit_sha256: 5c910e8958737edc363461db647131272dc7e541766a1441efe9d095e803e8db
+  approval: user-approved-2026-10-30
+  supervisor_signoff: unverified
+  audit_domain: treated_input
+  raw_audit_status: blocked
+  source_artifacts_root: artifacts

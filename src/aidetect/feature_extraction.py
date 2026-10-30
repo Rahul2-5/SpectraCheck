@@ -297,7 +297,7 @@ def feature_output_dir(features_root: str | Path, split: str) -> Path:
     return root / "test_sealed" if split == "test" else root / split
 
 
-def _source_payload(record: Mapping[str, Any], data_root: Path) -> bytes:
+def _source_payload(record: Mapping[str, Any], data_root: Path, cfg: Mapping[str, Any] | None = None) -> bytes:
     """Read one contained image and verify its audited bytes when recorded."""
     path = (data_root / str(record["rel_path"])).resolve()
     if not path.is_relative_to(data_root):
@@ -305,6 +305,10 @@ def _source_payload(record: Mapping[str, Any], data_root: Path) -> bytes:
     payload = path.read_bytes()
     if "sha256" in record and record["sha256"] != hashlib.sha256(payload).hexdigest():
         raise ValueError(f"Source image bytes changed after audit: {record['id']}")
+    if cfg and "r2" in cfg:
+        from aidetect.preprocess import _canonical_patch
+        if record.get("canonical_sha256") != hashlib.sha256(_canonical_patch(payload, cfg)).hexdigest():
+            raise ValueError("R2 treated representation differs from the audit")
     return payload
 
 
@@ -361,7 +365,7 @@ def extract_split_features(
                 batch_ids_hash=batch_ids_hash,
             )
             for record in batch.to_dict(orient="records"):
-                _source_payload(record, data_root_path)
+                _source_payload(record, data_root_path, cfg)
             skipped += 1
             timings.append(
                 {"batch_index": batch_index, "rows": len(batch), "status": "skipped", "seconds": 0.0}
@@ -371,7 +375,7 @@ def extract_split_features(
         rows_for_file: list[dict[str, Any]] = []
         first_summary: dict[str, Any] | None = None
         for record in batch.to_dict(orient="records"):
-            payload = _source_payload(record, data_root_path)
+            payload = _source_payload(record, data_root_path, cfg)
             summary = summarize_preprocessed_image(preprocess_image(payload, cfg), cfg)
             if first_summary is None:
                 first_summary = summary

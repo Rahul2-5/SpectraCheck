@@ -64,11 +64,14 @@ class InferenceService:
     def __init__(self, root: str | Path, settings: dict):
         self.root = Path(root).resolve()
         self.settings = settings
+        self.config_path = (self.root / settings.get("research_config", "config.yaml")).resolve()
+        if not self.config_path.is_relative_to(self.root):
+            raise ValueError("Research config must be inside the serving project")
         self._cache: tuple | None = None
         self._guard = threading.RLock()
 
     def _bundle(self) -> tuple:
-        cfg_path = self.root / "config.yaml"
+        cfg_path = self.config_path
         cfg = load_config(cfg_path)
         artifacts = (self.root / cfg["paths"]["artifacts_root"]).resolve()
         if not artifacts.is_relative_to(self.root):
@@ -116,7 +119,7 @@ class InferenceService:
 
     def _feature_analysis_config(self) -> dict[str, Any]:
         """Load and validate only the configuration needed for feature analysis."""
-        cfg = load_config(self.root / "config.yaml")
+        cfg = load_config(self.config_path)
         if not isinstance(cfg.get("image_size"), int) or cfg["image_size"] < 1:
             raise ValueError("Feature analysis requires a positive image_size.")
         frequency = cfg.get("frequency")
@@ -155,7 +158,7 @@ class InferenceService:
             "model": None,
             "processed_size": cfg["image_size"],
             "warnings": [],
-            "disclaimer": DISCLAIMER,
+            "disclaimer": self._scope_note(cfg),
             "feature_analysis": {
                 "spectral_entropy": float(entropy),
                 "rapsd_ring_count": int(len(rapsd_values)),
@@ -167,10 +170,15 @@ class InferenceService:
             },
         }
 
+    @staticmethod
+    def _scope_note(cfg: dict) -> str:
+        return DISCLAIMER + (" Analysis uses a uniformly encoded fixed centre patch."
+                              if cfg.get("preprocess", {}).get("version") == 2 else "")
+
     def health(self) -> dict[str, Any]:
-        cfg = load_config(self.root / "config.yaml")
+        cfg = load_config(self.config_path)
         base = {"min_image_side": cfg["image_size"], "max_upload_bytes": self.settings["max_upload_bytes"],
-                "disclaimer": DISCLAIMER}
+                "disclaimer": self._scope_note(cfg)}
         try:
             self._feature_analysis_config()
             feature_available = True
@@ -208,6 +216,6 @@ class InferenceService:
         edges = np.linspace(1.0, cfg["image_size"] // 2, rings + 1)
         return {"label": "AI-generated" if predicted[0] else "Real", "prediction": int(predicted[0]),
                 "ai_probability": float(positive[0]), "model": primary["artifact_key"],
-                "processed_size": cfg["image_size"], "warnings": notes, "disclaimer": DISCLAIMER,
+                "processed_size": cfg["image_size"], "warnings": notes, "disclaimer": self._scope_note(cfg),
                 "spectrum_png": "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode("ascii"),
                 "rapsd": {"radius": ((edges[:-1] + edges[1:]) / 2).tolist(), "log_power": values[2:2 + rings].tolist()}}

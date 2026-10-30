@@ -31,6 +31,8 @@ def _load_rows(data_root: Path, split: str, *, expected_active_digest: str | Non
     active = pd.read_csv(active_path, dtype={"id": str, "group_id": str})
     frozen = pd.read_csv(frozen_path, dtype={"id": str, "group_id": str})
     required_active = {"id", "rel_path", "sha256", "label", "group_id"}
+    if audit.get("protocol") == "R2":
+        required_active.add("canonical_sha256")
     required_frozen = {"id", "label", "split", "group_id"}
     if missing := required_active - set(active.columns):
         raise ValueError(f"Active manifest is missing columns: {sorted(missing)}")
@@ -46,7 +48,10 @@ def _load_rows(data_root: Path, split: str, *, expected_active_digest: str | Non
     selected = merged[merged["split"] == split].copy()
     if selected.empty:
         raise ValueError(f"No rows found for split {split}")
-    return selected[["id", "label", "group_id", "split", "rel_path", "sha256"]].sort_values("id")
+    columns = ["id", "label", "group_id", "split", "rel_path", "sha256"]
+    if "canonical_sha256" in required_active:
+        columns.append("canonical_sha256")
+    return selected[columns].sort_values("id")
 
 
 def main() -> None:

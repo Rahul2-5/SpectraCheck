@@ -1,12 +1,12 @@
 # R2 fixed-crop protocol amendment for review
 
-**Proposed, not adopted — 30 October 2026.**
+**Approved by the user on 30 October 2026; implementation and official checks recorded separately below. Supervisor sign-off is unverified.**
 
 ## Proposed decision
 
 Study classification of uniformly encoded fixed 256x256 centre patches from the existing real/SD1.5 acquisition, rather than classification after the original variable-size centre-square/downsample pipeline. The measured candidate below gives a concrete basis for review; it is not a declaration that the original acquisition is unbiased.
 
-The user's request to fix the problem authorized investigation. Team/supervisor acceptance of this revised scientific treatment and its validity criterion is not recorded.
+After reviewing the candidate and this amendment, the user explicitly replied "aproved" to the proposed R2 approval step. This authorizes R2 implementation and the revised Phase 2 audit/splits. It is not represented as independent supervisor sign-off or approval of downstream training/evaluation.
 
 ## Evidence available for the decision
 
@@ -46,10 +46,10 @@ No new images, paid resources or GPU work are proposed for this treatment. Exist
 
 ## Decision form
 
-- Adopt the fixed-patch research question and exactly-once preprocessing treatment: **pending**.
-- Accept the explicitly narrower treated-input audit domain while retaining raw failure: **pending**.
-- Accept residual content/scale/compression limitations and exploratory amendment disclosure: **pending**.
+- Adopt the fixed-patch research question and exactly-once preprocessing treatment: **user approved, 30 October 2026**.
+- Accept the explicitly narrower treated-input audit domain while retaining raw failure: **user approved, 30 October 2026**.
+- Accept residual content/scale/compression limitations and exploratory amendment disclosure: **user approved, 30 October 2026**.
 - Team reviewer(s), supervisor decision/date/rationale: **pending**.
-- Authorize versioned R2 implementation and official re-audit: **pending**.
+- Authorize versioned R2 implementation and official re-audit: **user approved, 30 October 2026**.
 
 If these changes are unacceptable, the current study remains blocked and a different acquisition/source proposal is required. A numerically below-threshold candidate alone cannot settle this decision.

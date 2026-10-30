@@ -1,5 +1,33 @@
 # Project decisions
 
+## 30 October 2026 - R2 fixed-patch amendment approved by user
+
+The user replied "aproved" after being directed to the R2 amendment and its
+explicit fixed-patch treatment and narrower audit domain. R2 is implemented as
+an opt-in experiment in `config_r2.yaml`, with independent roots and the same
+0.60 probe limit. The raw failed audit remains preserved. User approval is
+recorded; independent supervisor sign-off remains unverified. This task covers
+the revised Phase 2 implementation/audit/split, not training or held-out evaluation.
+Use `notebooks/colab_r2.ipynb` and explicit `--config config_r2.yaml` commands.
+
+## 30 October 2026 - Full GenImage metadata feasibility result
+
+The user downloaded and supplied `genimage_metadata.csv` for inspection. Two
+independent counting passes agree: 2,681,150 total metadata rows; 174,000 SD1.5
+rows, all 512x512; only 51 real 512x512 entries across all folders, including 7
+in the SD1.5 folder. The investigated GenImage candidate cannot meet draft R1's
+proposed minimum. See [the feasibility report](../reports/genimage_metadata_feasibility_2026-10-30.md).
+No image acquisition or revised experimental treatment is approved by this finding.
+
+## 30 October 2026 - Revised data protocol draft requested
+
+Following the live failed Phase 2 audit and unsuccessful geometry-matching
+diagnostics, the user selected **"Prepare a revised data protocol"**.
+See [the R1 proposal](REVISED_DATA_PROTOCOL_PROPOSAL.md). This authorizes drafting
+only. Native-source feasibility, matched acquisition, source/license/capacity
+limits and team/supervisor review remain pending; no dataset change, download,
+preprocessing change or downstream run is approved by this decision.
+
 ## 27 October 2026 - React prototype
 
 The user requested React instead of Streamlit. This replaces the original PRD's

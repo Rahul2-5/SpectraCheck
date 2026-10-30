@@ -83,3 +83,14 @@ mock only synthetic API responses, and include axe checks, desktop/mobile widths
 keyboard file selection, error handling, and result clearing. They do not supply
 a research model. Touch/keyboard feel and safe areas on physical phones remain
 a team check; desktop emulation is not evidence of real-device testing.
+# Approved R2 experiment
+
+For an R2 serving bundle, set `research_config: config_r2.yaml` in the local
+backend settings. All referenced config/artifacts must be inside the serving
+project and match the reviewed freeze. The default remains the historical
+`config.yaml`; it does not silently select a different model or experiment.
+R2 upload inference and extraction both consume original bytes through
+`preprocess_image`, performing fixed-centre cropping and one JPEG generation.
+Never supply the diagnostic's encoded patches as training or serving originals.
+The UI scope note identifies fixed-centre-patch analysis. There is currently no
+real R2 model bundle; analysis availability does not imply a trained detector.

@@ -19,6 +19,7 @@ features/
 *.parquet
 *.npz
 artifacts/models/
+artifacts/r2/models/
 
 # Machine-specific settings and credentials
 .env
