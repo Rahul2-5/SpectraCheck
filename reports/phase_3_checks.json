@@ -33,7 +33,40 @@
     "PIL.Image.Image.resize": "(self, size: 'tuple[int, int] | list[int] | NumpyArray', resample: 'int | None' = None, box: 'tuple[float, float, float, float] | None' = None, reducing_gap: 'float | None' = None) -> 'Image'",
     "PIL.Image.Resampling.LANCZOS": 1
   },
-  "real_colab_preprocessing_reviewed": false,
+  "real_colab_preprocessing_reviewed": true,
   "real_research_split_present": false,
-  "remote_ci_verified": false
+  "remote_ci_verified": false,
+  "r2_real_data_review": {
+    "status": "complete",
+    "review_date": "2026-10-30",
+    "notebook_drive_id": "1h3v8pHEQmK6QwPHWIL9K0Max6GhnE1j7",
+    "colab_source_commit": "1170199bbbc62ad32e9c436c3cbad90d2f6d157f",
+    "config_sha256": "ac92656ca11539bf8aaa7c6c89d9851ddf006ed4fc514a99ba6b2e9bae24d7d6",
+    "split_sha256": "1e823b5df253951bc2a7221b618fc7c0e5716f85066d509a3d9442c56ccfef93",
+    "active_manifest_sha256": "2af4d01ee69adadc0f28c741ad2bafed846d73c958b0f114efca939122ee05e8",
+    "audit_result_sha256": "0ec413d2f64e3e9da9da6e97be41c5bf9071a061cf987a472bacdafaa7fce145",
+    "review_record": "aidetect/r2/review_backup/phase_3_preprocessing_review_20261030T143633Z.json",
+    "review_record_sha256": "47aaca58c83b3d8b0ddcbe3e8cd137f87e75764735f0dc4443c857b8b1bc7fb6",
+    "rows_visually_reviewed": {
+      "label_0": 20,
+      "label_1": 20
+    },
+    "research_split_filter": "frozen split == train before opening source paths",
+    "preprocessing": {
+      "version": 2,
+      "image_size": 256,
+      "crop": "fixed centre patch",
+      "jpeg": "one JPEG Q96, 4:4:4, optimize=false, progressive=false",
+      "resize": "none",
+      "undersized_train_candidates": {
+        "label_0": 0,
+        "label_1": 0
+      },
+      "output": "finite float64 [0,1], divisor 255"
+    },
+    "visual_review": "pass: 40 rendered patches were legible; no decode corruption or obvious stretching",
+    "raw_audit": "blocked and retained; R2 is treated-input scope only",
+    "supervisor_signoff": "unverified",
+    "downstream_work": "no extraction, training, freeze, evaluation, or Phase 4"
+  }
 }

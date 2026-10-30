@@ -1,6 +1,21 @@
 # Phase 3 report
 
-Status: **Shared preprocessing code and synthetic checks are complete locally. The required 20-per-class Colab review, real-data counts, split outputs, and remote CI remain pending.**
+Status: **R2 Phase 3 real-data preprocessing review is complete in live Colab. The original version-1 code and synthetic-check record below is retained as historical context.**
+
+## R2 real-data review (30 October 2026)
+
+The current R2 preprocessing gate completed against the frozen Drive data. The live notebook was `colab_runner_11.ipynb` (Drive ID `1h3v8pHEQmK6QwPHWIL9K0Max6GhnE1j7`), on `main`, source commit `1170199bbbc62ad32e9c436c3cbad90d2f6d157f`.
+
+- Verified `config_r2.yaml` SHA-256 `ac92656ca11539bf8aaa7c6c89d9851ddf006ed4fc514a99ba6b2e9bae24d7d6`, frozen split SHA-256 `1e823b5df253951bc2a7221b618fc7c0e5716f85066d509a3d9442c56ccfef93`, active manifest SHA-256 `2af4d01ee69adadc0f28c741ad2bafed846d73c958b0f114efca939122ee05e8`, and audit result SHA-256 `0ec413d2f64e3e9da9da6e97be41c5bf9071a061cf987a472bacdafaa7fce145`.
+- The notebook confirmed the frozen split and active manifest have matching IDs, labels and groups, with no duplicate group crossing splits. It selected 20 deterministic rows per label only after filtering to research `split == "train"`, using seed 42, verified source hashes, and called the shared version-2 `preprocess_image`.
+- Machine checks confirmed 256×256 fixed centre patches; exactly one JPEG Q96/4:4:4 treatment; no resize or upscaling; finite float64 outputs in `[0,1]`; and zero undersized TRAIN candidates for labels 0 and 1.
+- I visually reviewed both rendered 4×5 grids: all 40 outputs were legible grayscale centre patches with no decode corruption or obvious stretching. Some IDs include `validation_`; these are upstream item IDs, not research validation membership. The selection code filters using the frozen research split before opening paths.
+- Checksummed Drive evidence: `/content/drive/MyDrive/aidetect/r2/review_backup/phase_3_preprocessing_review_20261030T143633Z.json`, SHA-256 `47aaca58c83b3d8b0ddcbe3e8cd137f87e75764735f0dc4443c857b8b1bc7fb6`. The Drive JSON records the machine provenance, selected IDs, source hashes and output-array hashes; the rendered grids were shown by Colab, and the manual visual judgement is recorded here.
+- The latest live Colab notebook replaces the removed canonical runner. Its executable review code and text outputs are preserved in Git; embedded sample-image pixels from Phase 1/3 outputs are omitted to avoid redistributing dataset images. The cells regenerate the previews when run in Colab.
+
+The original raw audit remains blocked; the R2 treated-input audit is a narrower amended scope with residual confounding. Supervisor sign-off remains unverified. No feature extraction, training, freeze, test evaluation, or Phase 4 work was performed in this review. Stop here until Phase 4 is explicitly authorized.
+
+## Historical version-1 implementation record
 
 ## Done
 
@@ -45,7 +60,7 @@ The active configuration SHA-256 is `bf1e6f3b4f4cdc5f95d0503e55533aee54f48fc054b
 
 No dataset images, feature files, research split hash, model, or evaluation output was produced.
 
-## Checks for the team to run in Colab
+## Original version-1 checks for the team (historical; superseded for R2)
 
 1. Clone/update `main`, install the pinned requirements, and run the notebook setup/test cells. Confirm the full test suite passes in the Colab runtime.
 2. Complete the reviewed Phase 2 audit/split steps first if the real Drive outputs do not already exist. Do not silently regenerate a sealed split or overwrite an existing audit.
@@ -72,7 +87,7 @@ No dataset images, feature files, research split hash, model, or evaluation outp
 - Pillow's `RGB` then `L` conversion is the prescribed single grayscale conversion. No class-specific, feature-specific, or app-specific preprocessing was added.
 - Since no real research split is present locally, adding the Phase 3 settings does not overwrite or regenerate team data. Any team-created Phase 2 audit/split records must retain their recorded historical hash and be reviewed against the active configuration before downstream work.
 
-## Open questions / anything I could not verify
+## Open questions at the original version-1 report date (historical)
 
 - The team has not run the 20-real/20-AI Colab preprocessing review, so the actual undersized count and visual quality are unknown.
 - Real dataset availability, generator counts, metadata-probe decisions, duplicate structure, and split feasibility remain unverified as recorded in Phase 2.
@@ -81,4 +96,4 @@ No dataset images, feature files, research split hash, model, or evaluation outp
 
 ## STOP
 
-Phase 3 is complete locally. Waiting for the team checks and your explicit **`PROCEED TO PHASE 4`** approval before starting Phase 4.
+R2 Phase 3 is complete. Stop here and wait for explicit Phase 4 authorization; supervisor sign-off remains unverified.
