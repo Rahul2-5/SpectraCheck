@@ -92,7 +92,13 @@ def _geometry_values(frame: pd.DataFrame) -> pd.DataFrame:
 def _quantile_edges(values: pd.Series, bins: int) -> np.ndarray:
     if bins < 1:
         raise ValueError("Quantile bin count must be positive")
-    raw = np.quantile(values.to_numpy(dtype=float), np.linspace(0.0, 1.0, bins + 1))
+    numeric = pd.to_numeric(values, errors="coerce").replace([np.inf, -np.inf], np.nan).dropna()
+    if numeric.empty:
+        # An empty candidate can still be passed through every strategy.  A
+        # single catch-all interval keeps bin construction total and lets the
+        # caller record an empty cohort instead of aborting the run.
+        return np.asarray([-np.inf, np.inf], dtype=float)
+    raw = np.quantile(numeric.to_numpy(dtype=float), np.linspace(0.0, 1.0, bins + 1))
     unique = np.unique(raw)
     if unique.size < 2:
         return np.asarray([-np.inf, np.inf], dtype=float)
@@ -184,8 +190,18 @@ def _distribution_rows(frame: pd.DataFrame, strategy: str, population: str) -> p
     for label, class_name in ((0, "real"), (1, "ai")):
         subset = values.loc[values["label"] == label]
         for feature in features:
-            numeric = subset[feature].astype(float)
-            quantiles = np.quantile(numeric, [0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99])
+            if feature in subset:
+                numeric = pd.to_numeric(subset[feature], errors="coerce")
+            else:
+                numeric = pd.Series(index=subset.index, dtype=float)
+            numeric = numeric.replace([np.inf, -np.inf], np.nan)
+            finite = numeric.dropna().to_numpy(dtype=float)
+            if finite.size == 0:
+                quantiles = np.full(7, np.nan, dtype=float)
+                status = "empty_cohort" if len(subset) == 0 else "empty_numeric"
+            else:
+                quantiles = np.quantile(finite, [0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99])
+                status = "partial_missing" if len(finite) < len(numeric) else "ok"
             rows.append({
                 "strategy": strategy,
                 "population": population,
@@ -193,7 +209,10 @@ def _distribution_rows(frame: pd.DataFrame, strategy: str, population: str) -> p
                 "class_name": class_name,
                 "feature": feature,
                 "count": int(len(subset)),
-                "min": float(numeric.min()),
+                "numeric_count": int(finite.size),
+                "missing_count": int(len(numeric) - finite.size),
+                "status": status,
+                "min": float(np.min(finite)) if finite.size else np.nan,
                 "q01": float(quantiles[0]),
                 "q05": float(quantiles[1]),
                 "q25": float(quantiles[2]),
@@ -201,28 +220,46 @@ def _distribution_rows(frame: pd.DataFrame, strategy: str, population: str) -> p
                 "q75": float(quantiles[4]),
                 "q95": float(quantiles[5]),
                 "q99": float(quantiles[6]),
-                "max": float(numeric.max()),
-                "mean": float(numeric.mean()),
-                "std": float(numeric.std(ddof=1)) if len(numeric) > 1 else 0.0,
+                "max": float(np.max(finite)) if finite.size else np.nan,
+                "mean": float(np.mean(finite)) if finite.size else np.nan,
+                "std": float(np.std(finite, ddof=1)) if finite.size > 1 else (0.0 if finite.size else np.nan),
             })
     return pd.DataFrame(rows)
 
 
 def _probe_result(strategy: str, cohort: pd.DataFrame, *, seed: int, cv_folds: int,
                   tree_depth: int, logistic_max_iter: int) -> pd.DataFrame:
+    if "label" in cohort:
+        counts = cohort["label"].value_counts().to_dict()
+        real_rows = int(counts.get(0, 0))
+        ai_rows = int(counts.get(1, 0))
+        min_class_count = min(real_rows, ai_rows)
+    else:
+        real_rows = ai_rows = min_class_count = 0
     base = {
         "strategy": strategy,
         "rows": int(len(cohort)),
-        "real_rows": int((cohort["label"] == 0).sum()),
-        "ai_rows": int((cohort["label"] == 1).sum()),
+        "real_rows": real_rows,
+        "ai_rows": ai_rows,
         "threshold": THRESHOLD,
         "cv_folds": cv_folds,
         "seed": seed,
     }
-    if cohort.empty or cohort["label"].value_counts().min() < cv_folds:
-        reason = "empty_cohort" if cohort.empty else "class_count_below_cv_folds"
+    if "label" not in cohort:
+        reason = "missing_label_column"
+        status = "error"
+    elif cohort.empty:
+        reason = "empty_cohort"
+        status = "not_run"
+    elif min_class_count < cv_folds:
+        reason = "class_count_below_cv_folds"
+        status = "not_run"
+    else:
+        reason = ""
+        status = "ready"
+    if status != "ready":
         return pd.DataFrame([
-            {**base, "model": model, "probe_status": "not_run", "reason": reason,
+            {**base, "model": model, "probe_status": status, "reason": reason,
              "mean_accuracy": np.nan, "fold_accuracies": "", "passes_threshold": False}
             for model in ("logistic_regression", "decision_tree")
         ])
@@ -321,8 +358,6 @@ def run_geometry_analysis(
         source_input = original_input
 
     eligible = _eligible(source, image_size)
-    if eligible["label"].value_counts().min() < cv_folds:
-        raise ValueError("Eligible source has too few rows for the configured CV folds")
 
     all_counts: list[pd.DataFrame] = []
     all_distributions: list[pd.DataFrame] = []
@@ -331,7 +366,13 @@ def run_geometry_analysis(
     all_ids: list[pd.DataFrame] = []
     strategy_parameters: list[dict[str, Any]] = []
 
-    baseline = _balanced(eligible, seed)
+    eligible_counts = eligible["label"].value_counts().to_dict()
+    if min(int(eligible_counts.get(0, 0)), int(eligible_counts.get(1, 0))) >= cv_folds:
+        baseline = _balanced(eligible, seed)
+    else:
+        # Preserve a diagnostic record for undersized/one-class inputs; the
+        # probe function will mark it not_run instead of aborting all bins.
+        baseline = eligible.copy()
     all_probes.append(_probe_result(
         "active_unmatched" if scope == "active" else "original_unmatched",
         baseline,
