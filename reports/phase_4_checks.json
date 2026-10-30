@@ -35,8 +35,65 @@
     "numpy.hanning": "(M)"
   },
   "executable_resize_search": "only src/aidetect/preprocess.py",
-  "real_colab_spectra_reviewed": false,
+  "real_colab_spectra_reviewed": true,
   "real_feature_files_present": false,
   "real_research_split_present": false,
-  "remote_ci_verified": false
+  "remote_ci_verified": false,
+  "r2_colab_train_only_review": {
+    "status": "completed_train_only_spectra_review",
+    "runtime_branch": "main",
+    "runtime_git_commit": "1170199bbbc62ad32e9c436c3cbad90d2f6d157f",
+    "config_sha256": "ac92656ca11539bf8aaa7c6c89d9851ddf006ed4fc514a99ba6b2e9bae24d7d6",
+    "splits_sha256": "1e823b5df253951bc2a7221b618fc7c0e5716f85066d509a3d9442c56ccfef93",
+    "active_manifest_sha256": "2af4d01ee69adadc0f28c741ad2bafed846d73c958b0f114efca939122ee05e8",
+    "audit_result_sha256": "0ec413d2f64e3e9da9da6e97be41c5bf9071a061cf987a472bacdafaa7fce145",
+    "audit_domain": "treated_input",
+    "treated_input_audit_status": "passed",
+    "raw_audit_status": "blocked",
+    "supervisor_signoff": "unverified",
+    "preprocess_version": 2,
+    "preprocessed_array_contract": {
+      "shape": [
+        256,
+        256
+      ],
+      "dtype": "float64",
+      "range": [
+        0.0,
+        1.0
+      ],
+      "finite": true
+    },
+    "frequency_settings": {
+      "hann_window": true,
+      "epsilon": 1e-12,
+      "rapsd_rings": 64
+    },
+    "selected_train_counts_by_label": {
+      "0": 200,
+      "1": 200
+    },
+    "source_sha256_verified_against_active_manifest": true,
+    "figures": [
+      {
+        "name": "phase_4_mean_log_spectrum.png",
+        "drive_path": "aidetect/r2/review_backup/phase_4_spectrum_review_20261030T152916Z/phase_4_mean_log_spectrum.png",
+        "sha256": "14afb4b01ffa62c0d14a2e4984f9e4e791daaf248c6ac36b4f7ff683e81c113a"
+      },
+      {
+        "name": "phase_4_mean_rapsd.png",
+        "drive_path": "aidetect/r2/review_backup/phase_4_spectrum_review_20261030T152916Z/phase_4_mean_rapsd.png",
+        "sha256": "6347f9447b281a8e04dc4571667cd5b54231ddcf01109fc0ae06a8c8b8edda27"
+      }
+    ],
+    "review_record_drive_path": "aidetect/r2/review_backup/phase_4_spectrum_review_20261030T152916Z/phase_4_spectrum_review_20261030T152916Z.json",
+    "review_record_sha256": "3e794badb5ea3faa0e20bb1caa4eefb9ccae085109363fbf02e5815d08560fe5",
+    "visual_review_completed": true,
+    "visual_review_note": "Aggregate mean log-power spectra are centered; class mean RAPSD curves differ modestly across radial rings. Descriptive train-only review, not a detector result.",
+    "validation_test_image_files_opened": false,
+    "validation_test_feature_rows_read": false,
+    "feature_extraction_or_batch_files_written": false,
+    "outputs_are_aggregate_diagnostics_only": true,
+    "drive_backup_sidecar_present": true
+  }
 }
