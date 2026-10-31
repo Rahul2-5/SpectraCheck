@@ -83,6 +83,8 @@ class TrainingCheckpoints:
                     raise ValueError("Checkpoint manifest has unknown entries")
                 for key in self.manifest["entries"]:
                     self._receipt(key)  # Verify all committed bytes before unpickling or fitting.
+                for name in self.manifest.get("search_entries", {}):
+                    self._candidate_receipt(name)
             else:
                 unexpected = [p for p in self.root.iterdir()
                               if p.name not in {"running.lock", ".manifest.json.tmp"}]
@@ -152,6 +154,34 @@ class TrainingCheckpoints:
         path = self.root / f"{key}.json"
         _atomic_json(path, receipt)
         self.manifest["entries"][key] = sha256_of_file(path)
+        self._commit()
+
+    def _candidate_receipt(self, name: str) -> dict[str, Any] | None:
+        import re
+        if not re.fullmatch(r"(?:frequency|pixel)_(?:svm|rf|xgb)_\d{4}", name):
+            raise ValueError("Invalid candidate checkpoint name")
+        digest = self.manifest.get("search_entries", {}).get(name)
+        if digest is None:
+            return None
+        path = self.root / "search" / f"{name}.json"
+        if not path.is_file() or sha256_of_file(path) != digest:
+            raise ValueError(f"Search candidate checksum mismatch: {name}")
+        result = json.loads(path.read_text(encoding="utf-8"))
+        if result.get("contract_sha256") != self.digest or result.get("name") != name:
+            raise ValueError("Search candidate contract mismatch")
+        return result["payload"]
+
+    def load_candidate(self, key: str, index: int) -> dict[str, Any] | None:
+        return self._candidate_receipt(f"{key}_{index:04d}")
+
+    def save_candidate(self, key: str, index: int, payload: Mapping[str, Any]) -> None:
+        name = f"{key}_{index:04d}"
+        if self._candidate_receipt(name) is not None:
+            raise ValueError("Search candidate already committed")
+        path = self.root / "search" / f"{name}.json"
+        path.parent.mkdir(exist_ok=True)
+        _atomic_json(path, {"name": name, "contract_sha256": self.digest, "payload": dict(payload)})
+        self.manifest.setdefault("search_entries", {})[name] = sha256_of_file(path)
         self._commit()
 
     def progress(self, stage: str, model: str | None = None) -> None:

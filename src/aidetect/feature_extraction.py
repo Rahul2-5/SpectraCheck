@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 import hashlib
 import json
 from numbers import Integral
@@ -312,6 +314,11 @@ def _source_payload(record: Mapping[str, Any], data_root: Path, cfg: Mapping[str
     return payload
 
 
+def _summarize_record(record: Mapping[str, Any], *, data_root: Path, cfg: Mapping[str, Any]) -> dict[str, Any]:
+    payload = _source_payload(record, data_root, cfg)
+    return summarize_preprocessed_image(preprocess_image(payload, cfg), cfg)
+
+
 def extract_split_features(
     rows: pd.DataFrame,
     *,
@@ -321,6 +328,7 @@ def extract_split_features(
     split: str,
     config_digest: str,
     splits_digest: str,
+    workers: int = 1,
 ) -> dict[str, Any]:
     """Extract one split into resumable Parquet batches.
 
@@ -329,6 +337,8 @@ def extract_split_features(
     to prove that a resumable output belongs to the same configuration,
     split, and deterministic ID batch.
     """
+    if isinstance(workers, bool) or not isinstance(workers, int) or not 1 <= workers <= 4:
+        raise ValueError("Extraction workers must be an integer from 1 to 4")
     if split not in {"train", "val", "test"}:
         raise ValueError("split must be one of train, val, test")
     required = {"id", "label", "group_id", "rel_path", "split"}
@@ -374,9 +384,11 @@ def extract_split_features(
 
         rows_for_file: list[dict[str, Any]] = []
         first_summary: dict[str, Any] | None = None
-        for record in batch.to_dict(orient="records"):
-            payload = _source_payload(record, data_root_path, cfg)
-            summary = summarize_preprocessed_image(preprocess_image(payload, cfg), cfg)
+        records = batch.to_dict(orient="records")
+        # Threads overlap Drive reads and NumPy/Pillow work; map preserves ID order.
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            summaries = list(executor.map(partial(_summarize_record, data_root=data_root_path, cfg=cfg), records))
+        for record, summary in zip(records, summaries):
             if first_summary is None:
                 first_summary = summary
             elif (

@@ -65,6 +65,24 @@ def test_lookup_energy_ratio_matches_direct_masks_for_integer_cutoffs():
         assert actual == pytest.approx(expected, rel=1e-12, abs=1e-12)
 
 
+def test_parallel_extraction_preserves_values_order_and_source_integrity(tmp_path):
+    data = tmp_path / "data"
+    _write_images(data)
+    rows = _rows()
+    rows["sha256"] = [sha256_of_file(data / p) for p in rows["rel_path"]]
+    cfg = _cfg(batch_size=2)
+    for workers in (1, 2):
+        extract_split_features(rows, data_root=data, features_root=tmp_path / f"f{workers}",
+                               cfg=cfg, split="train", config_digest="same", splits_digest="same", workers=workers)
+    a = read_feature_batches(tmp_path / "f1", "train", artifacts_root=tmp_path / "artifacts")
+    b = read_feature_batches(tmp_path / "f2", "train", artifacts_root=tmp_path / "artifacts")
+    pd.testing.assert_frame_equal(a, b)
+    (data / "a.png").write_bytes(b"changed")
+    with pytest.raises(ValueError, match="changed after audit"):
+        extract_split_features(rows, data_root=data, features_root=tmp_path / "fresh",
+                               cfg=cfg, split="train", config_digest="same", splits_digest="same", workers=2)
+
+
 def test_summary_contains_all_recomputable_phase5_components():
     image = np.full((32, 32), 0.5, dtype=np.float64)
 

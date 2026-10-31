@@ -16,6 +16,8 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=Path("config.yaml"))
     parser.add_argument("--split", choices=("train", "val", "test"), required=True)
+    parser.add_argument("--workers", type=int, choices=range(1, 5), default=1,
+                        help="Bounded image read/FFT threads; default 1, Colab CPU suggestion 2")
     return parser
 
 
@@ -79,6 +81,7 @@ def main() -> None:
         split=args.split,
         config_digest=config_hash(cfg),
         splits_digest=recorded_digest,
+        workers=args.workers,
     )
     result.update(
         {

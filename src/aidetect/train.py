@@ -12,6 +12,7 @@ import platform
 from pathlib import Path
 import re
 import sys
+import time
 from typing import Any
 
 import joblib
@@ -29,6 +30,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVC
 from xgboost import XGBClassifier
+from threadpoolctl import threadpool_limits
 import xgboost
 
 from aidetect.feature_extraction import (
@@ -38,6 +40,7 @@ from aidetect.feature_extraction import (
 )
 from aidetect.io_utils import config_hash, sha256_of_file
 from aidetect.training_checkpoints import TrainingCheckpoints
+from aidetect.training_runtime import cache_training_batches, resumable_search, search_workers, verify_cuda_device
 
 
 _DEFAULT_MODEL_ORDER = ("svm", "rf", "xgb")
@@ -486,6 +489,7 @@ def load_training_features(
     cfg: Mapping[str, Any],
     *,
     config_file: str | Path,
+    feature_cache_dir: str | Path | None = None,
 ) -> tuple[pd.DataFrame, pd.DataFrame, dict[str, Any]]:
     """Load and validate train/val only; this function never opens test_sealed."""
     paths = _mapping(cfg.get("paths", {}), "cfg['paths']")
@@ -501,6 +505,13 @@ def load_training_features(
     if sha256_of_file(split_path) != digest:
         raise ValueError("data_root/splits.csv does not match artifacts/splits.sha256")
     config_digest = config_hash(dict(cfg))
+    if feature_cache_dir is not None:
+        cache = Path(feature_cache_dir)
+        for root in (data_root, artifacts_root, Path(paths.get("reports_root", "reports"))):
+            if cache.resolve().is_relative_to(root.resolve()) or root.resolve().is_relative_to(cache.resolve()):
+                raise ValueError("Feature cache must be separate from research inputs/outputs")
+        cache_training_batches(features_root, cache)
+        features_root = cache
     train_paths, train_config_digest = _validate_batch_metadata(
         features_root, "train", cfg, config_digest=config_digest, splits_digest=digest
     )
@@ -638,12 +649,12 @@ def _format_results_markdown(results: Sequence[Mapping[str, Any]]) -> str:
         "",
         "Validation metrics are computed on validation rows only. No test features are read here.",
         "",
-        "| Feature set | Model | CV accuracy (mean ± SD) | Validation accuracy | Validation ROC-AUC | Validation Brier |",
+        "| Feature set | Model | CV accuracy (mean Â± SD) | Validation accuracy | Validation ROC-AUC | Validation Brier |",
         "| --- | --- | ---: | ---: | ---: | ---: |",
     ]
     for result in results:
         lines.append(
-            "| {feature_set} | {model} | {cv_mean:.4f} ± {cv_sd:.4f} | "
+            "| {feature_set} | {model} | {cv_mean:.4f} Â± {cv_sd:.4f} | "
             "{validation_accuracy:.4f} | {validation_roc_auc:.4f} | {validation_brier_score:.4f} |".format(
                 **result
             )
@@ -712,6 +723,7 @@ def _checkpoint_contract(
 def run_phase6(
     cfg: Mapping[str, Any], *, config_file: str | Path = "config.yaml",
     checkpoint_dir: str | Path | None = None,
+    feature_cache_dir: str | Path | None = None,
 ) -> dict[str, Any]:
     """Run feature selection and six matched searches using train/validation only."""
     training = _training_config(cfg)
@@ -728,7 +740,8 @@ def run_phase6(
         if checkpoint_root in {artifacts_root.resolve(), reports_root.resolve(),
                                (artifacts_root / "models").resolve()}:
             raise ValueError("Use a separate checkpoint directory, not a final output directory")
-    train_frame, val_frame, provenance = load_training_features(cfg, config_file=config_file)
+    train_frame, val_frame, provenance = load_training_features(
+        cfg, config_file=config_file, feature_cache_dir=feature_cache_dir)
     _validate_frames(train_frame, val_frame, cfg)
 
     train_y = train_frame["label"].to_numpy(dtype=np.int64)
@@ -748,7 +761,10 @@ def run_phase6(
     with context as checkpoints:
         if checkpoints is not None:
             checkpoints.validate_outputs(_phase6_output_paths(artifacts_root, reports_root))
-        return _fit_phase6(cfg, train_frame, val_frame, provenance, folds, checkpoints)
+        verify_cuda_device(dict(cfg))
+        # Each fit has one estimator/BLAS thread; parallelism is across CV folds.
+        with joblib.parallel_config(backend="loky", inner_max_num_threads=1), threadpool_limits(limits=1):
+            return _fit_phase6(cfg, train_frame, val_frame, provenance, folds, checkpoints)
 
 
 def _fit_phase6(
@@ -763,7 +779,8 @@ def _fit_phase6(
     val_y = val_frame["label"].to_numpy(dtype=np.int64)
     seed, folds_count, iterations = int(cfg["seed"]), int(cfg["cv_folds"]), int(cfg["search_iters"])
     scoring = str(training.get("scoring", "accuracy"))
-    search_n_jobs = int(training["search_n_jobs"])
+    device = str(training.get("search_space", {}).get("xgb_fixed", {}).get("device", "cpu"))
+    search_n_jobs = search_workers(dict(training))
     cv_digest = _folds_digest(folds)
     if checkpoints is not None:
         checkpoints.progress("feature_selection")
@@ -818,20 +835,30 @@ def _fit_phase6(
                 print(f"[Phase 6] search: {key}", file=sys.stderr, flush=True)
             pipeline = make_pipeline(model_name, cfg)
             parameter_distributions = search_space(model_name, cfg)
-            search = RandomizedSearchCV(
-                estimator=pipeline,
-                param_distributions=parameter_distributions,
-                n_iter=iterations,
-                scoring=scoring,
-                n_jobs=search_n_jobs,
-                cv=folds,
-                random_state=seed,
-                refit=True,
-                error_score="raise",
-                return_train_score=False,
-                verbose=1,
-            )
-            search.fit(x_train, train_y)
+            workers = search_workers(dict(training), device=device if model_name == "xgb" else "cpu")
+            started = time.perf_counter()
+            if training.get("resume_candidates", False):
+                search = resumable_search(
+                    pipeline, parameter_distributions, iterations=iterations, seed=seed,
+                    folds=folds, values=x_train, labels=train_y, workers=workers,
+                    checkpoints=checkpoints, key=key)
+            else:
+                search = RandomizedSearchCV(
+                    estimator=pipeline,
+                    param_distributions=parameter_distributions,
+                    n_iter=iterations,
+                    scoring=scoring,
+                    n_jobs=workers,
+                    pre_dispatch=workers,
+                    cv=folds,
+                    random_state=seed,
+                    refit=True,
+                    error_score="raise",
+                    return_train_score=False,
+                    verbose=1,
+                )
+                search.fit(x_train, train_y)
+            print(f"[Phase 6] {key} search/refit elapsed: {time.perf_counter() - started:.1f}s", flush=True)
             if checkpoints is not None:
                 checkpoints.progress("calibration" if model_name == "svm" else "refit", key)
             if model_name == "svm":
@@ -848,7 +875,7 @@ def _fit_phase6(
                 )
                 fitted.fit(x_train, train_y)
             else:
-                fitted = clone(search.best_estimator_).fit(x_train, train_y)
+                fitted = search.best_estimator_
 
             metrics = _metrics(fitted, x_val, val_y)
             model_path = artifacts_root / "models" / f"{key}.joblib"
@@ -916,6 +943,10 @@ def _fit_phase6(
         "models": results,
         "versions": versions,
         "test_features_read": False,
+        "training_profile": training.get("profile", "original"),
+        "execution": {"search_workers": search_n_jobs, "xgb_search_workers":
+                      search_workers(dict(training), device=device), "xgb_device": device,
+                      "estimator_n_jobs": training["estimator_n_jobs"], "blas_threads": 1},
         "feature_importance": "descriptive only; not used for selection",
     }
     if checkpoints is not None:
@@ -962,7 +993,8 @@ def _fit_phase6(
     _write_json(output_reports / "phase_6_results.json", run_record)
     output_reports.mkdir(parents=True, exist_ok=True)
     (output_reports / "phase_6_results.md").write_text(
-        _format_results_markdown(results), encoding="utf-8"
+        f"Training profile: {training.get('profile', 'original')}; {folds_count} CV folds; "
+        f"{iterations} search candidates per model.\n\n" + _format_results_markdown(results), encoding="utf-8"
     )
     if checkpoints is not None:
         for target in _phase6_output_paths(artifacts_root, reports_root):

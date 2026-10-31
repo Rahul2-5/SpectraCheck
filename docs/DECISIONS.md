@@ -1,5 +1,19 @@
 # Project decisions
 
+## 31 October 2026 - Faster CPU/T4 execution approved by user
+
+The user approved the proposed performance changes after requesting a list first.
+Opt-in `config_r2_fast.yaml` / `config_r2_fast_t4.yaml` reduce training to three
+shared CV folds and ten candidates per model (180 fold fits); sigmoid SVM
+calibration uses three folds. Six models, search ranges, feature-choice grid,
+seed 42, frozen split, preprocessing and sealed-test rules remain unchanged.
+This is an explicit amendment to the original five-fold/30-candidate protocol;
+original configs/records stay unchanged and fast results use separate roots.
+Supervisor sign-off is unverified. Optional T4 acceleration applies to XGBoost
+only; CPU is the default. See `COLAB_PERFORMANCE.md` and the performance report.
+Other phases receive CPU/resume guidance and optional bounded Phase 5 extraction
+threads; no completed data phase or held-out evaluation is authorized to rerun.
+
 ## 30 October 2026 - R2 fixed-patch amendment approved by user
 
 The user replied "aproved" after being directed to the R2 amendment and its

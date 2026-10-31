@@ -25,13 +25,18 @@ def main() -> int:
         help="Path to the project YAML configuration",
     )
     parser.add_argument(
+        "--feature-cache-dir", type=Path,
+        help="Optional local cache of hash-verified train/val batches only; never copies sealed test batches",
+    )
+    parser.add_argument(
         "--checkpoint-dir", type=Path,
         help="Optional persistent directory for verified per-model resume; use the same Drive path on restart",
     )
     args = parser.parse_args()
     config_path = Path(args.config).resolve()
     cfg = load_config(config_path)
-    result = run_phase6(cfg, config_file=config_path, checkpoint_dir=args.checkpoint_dir)
+    result = run_phase6(cfg, config_file=config_path, checkpoint_dir=args.checkpoint_dir,
+                        feature_cache_dir=args.feature_cache_dir)
     print(
         json.dumps(
             {
