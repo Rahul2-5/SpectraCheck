@@ -22,6 +22,7 @@ artifacts/models/
 artifacts/r2/models/
 artifacts/r2_fast/models/
 artifacts/r2_fast_t4/models/
+artifacts/r2_fast_rf_t4/models/
 artifacts/phase6_checkpoints/
 artifacts/r2/phase6_checkpoints/
 

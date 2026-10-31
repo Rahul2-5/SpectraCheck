@@ -30,7 +30,12 @@ def prepare(config: Path, *, project: Path = PROJECT) -> dict:
         if cfg["training"][key] != original["training"][key]:
             raise ValueError(f"Fast profile changed training {key}")
     for model in ("svm", "rf", "xgb"):
-        if cfg["training"]["search_space"][model] != original["training"]["search_space"][model]:
+        expected_space = dict(original["training"]["search_space"][model])
+        if model == "rf" and cfg["training"].get("rf_search_amendment") == "user-approved-2026-10-31":
+            expected_space.update(n_estimators=[100, 300], max_features=["sqrt"])
+            if cfg["training"].get("reuse_source_contract_sha256") != "141960dbe64eb5b59eae1763b36c90b2dc992243c86e781426a7cf277359b3b4":
+                raise ValueError("RF amendment must pin the reviewed original fast-run contract")
+        if cfg["training"]["search_space"][model] != expected_space:
             raise ValueError("Fast profile must preserve original search ranges")
     fixed = dict(cfg["training"]["search_space"]["xgb_fixed"])
     if fixed.pop("device", None) not in {"cpu", "cuda"} or fixed != original["training"]["search_space"]["xgb_fixed"]:

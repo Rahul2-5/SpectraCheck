@@ -1,5 +1,22 @@
 # Project decisions
 
+## 31 October 2026 - Narrower RF search explicitly approved
+
+After observing the pixel RF's second candidate take about eight minutes, the
+user selected **"Switch to faster RF search"**. `config_r2_fast_rf_t4.yaml`
+uses **100–300 RF trees and max_features='sqrt'** for both feature sets, retaining
+the remaining RF ranges, all SVM/XGBoost settings, six models, three shared folds,
+ten candidates, seed 42 and unchanged R2 inputs. This supersedes the original
+RF search ranges for the new profile only. Supervisor sign-off is unverified.
+
+A guarded migration pins the original fast-run checkpoint contract, checks exact
+code/environment/input/fold provenance, and reuses only completed identical SVM/
+XGBoost pipelines plus the unaffected feature choice. Both RF searches restart
+under the revised ranges; no RF model/candidate is reused. Old checkpoints and
+records remain intact. New outputs/checkpoints have separate roots. Synthetic
+migration/runtime checks: 18 passed in 12.69s. Real migration/completion must be
+verified separately. Test values remain sealed; no Phase 7 authorization.
+
 ## 31 October 2026 - Faster CPU/T4 execution approved by user
 
 The user approved the proposed performance changes after requesting a list first.
