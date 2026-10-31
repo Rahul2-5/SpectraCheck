@@ -2,7 +2,7 @@
 import shutil
 assert P6_START['status'] == 'ready'
 assert not FREEZE_LOCK.exists()
-P6_COMMAND = [sys.executable, '-u', 'scripts/train_models.py', '--config', str(R2_CONFIG_PATH)]
+P6_COMMAND = [sys.executable, '-u', 'scripts/train_models.py', '--config', str(R2_CONFIG_PATH), '--checkpoint-dir', str(P6_CHECKPOINT_ROOT)]
 with (P6_BACKUP / 'training.log').open('x') as p6_log:
     p6_process = subprocess.Popen(P6_COMMAND, cwd=PROJECT_DIR, env=cli_env, stdout=p6_log, stderr=subprocess.STDOUT, text=True)
     P6_START.update(status='running', pid=p6_process.pid, command=P6_COMMAND, started_utc=datetime.now(timezone.utc).isoformat())

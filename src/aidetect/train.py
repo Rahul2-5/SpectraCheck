@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from contextlib import nullcontext
 import hashlib
+from importlib.metadata import version
 import json
 import math
 import platform
 from pathlib import Path
 import re
+import sys
 from typing import Any
 
 import joblib
@@ -34,6 +37,7 @@ from aidetect.feature_extraction import (
     feature_output_dir,
 )
 from aidetect.io_utils import config_hash, sha256_of_file
+from aidetect.training_checkpoints import TrainingCheckpoints
 
 
 _DEFAULT_MODEL_ORDER = ("svm", "rf", "xgb")
@@ -649,8 +653,8 @@ def _format_results_markdown(results: Sequence[Mapping[str, Any]]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _assert_outputs_absent(artifacts_root: Path, reports_root: Path) -> None:
-    expected = [
+def _phase6_output_paths(artifacts_root: Path, reports_root: Path) -> list[Path]:
+    return [
         artifacts_root / "feature_choice.json",
         artifacts_root / "primary_model.json",
         artifacts_root / "versions.json",
@@ -667,7 +671,10 @@ def _assert_outputs_absent(artifacts_root: Path, reports_root: Path) -> None:
             for model in _DEFAULT_MODEL_ORDER
         ],
     ]
-    existing = [str(path) for path in expected if path.exists()]
+
+
+def _assert_outputs_absent(artifacts_root: Path, reports_root: Path) -> None:
+    existing = [str(path) for path in _phase6_output_paths(artifacts_root, reports_root) if path.exists()]
     if existing:
         raise FileExistsError(
             "Phase 6 outputs already exist; inspect and archive them before a new run: "
@@ -675,13 +682,52 @@ def _assert_outputs_absent(artifacts_root: Path, reports_root: Path) -> None:
         )
 
 
-def run_phase6(cfg: Mapping[str, Any], *, config_file: str | Path = "config.yaml") -> dict[str, Any]:
+def _checkpoint_contract(
+    cfg: Mapping[str, Any], provenance: Mapping[str, Any],
+    folds: Sequence[tuple[np.ndarray, np.ndarray]],
+) -> dict[str, Any]:
+    """Bind only train/val inputs, exact code/environment, config and shared CV."""
+    package = Path(__file__).resolve().parent
+    project = package.parents[1]
+    source_files = {f"aidetect/{p.name}": sha256_of_file(p) for p in sorted(package.glob("*.py"))}
+    for relative in ("scripts/train_models.py", "requirements.txt"):
+        path = project / relative
+        if not path.is_file():
+            raise FileNotFoundError(f"Checkpoint provenance requires source checkout file: {path}")
+        source_files[relative] = sha256_of_file(path)
+    return {
+        "config_sha256": config_hash(dict(cfg)),
+        "config_file": provenance["config_file"],
+        "feature_config_sha256": provenance["feature_config_sha256"],
+        "splits_sha256": provenance["splits_sha256"],
+        "feature_batches": provenance["feature_batches"],
+        "cv_splits_sha256": _folds_digest(folds),
+        "source_sha256": source_files,
+        "versions": {"python": platform.python_version(), **{
+            name: version(name) for name in ("numpy", "scipy", "pandas", "pyarrow", "pillow",
+                                            "scikit-learn", "xgboost", "joblib", "matplotlib")}},
+    }
+
+
+def run_phase6(
+    cfg: Mapping[str, Any], *, config_file: str | Path = "config.yaml",
+    checkpoint_dir: str | Path | None = None,
+) -> dict[str, Any]:
     """Run feature selection and six matched searches using train/validation only."""
     training = _training_config(cfg)
     paths_cfg = _mapping(cfg.get("paths", {}), "cfg['paths']")
     artifacts_root = Path(paths_cfg.get("artifacts_root", "artifacts"))
     reports_root = Path(paths_cfg.get("reports_root", "reports"))
-    _assert_outputs_absent(artifacts_root, reports_root)
+    if checkpoint_dir is None:
+        _assert_outputs_absent(artifacts_root, reports_root)
+    else:
+        checkpoint_root = Path(checkpoint_dir).resolve()
+        for key in ("features_root", "data_root"):
+            if checkpoint_root.is_relative_to(Path(paths_cfg[key]).resolve()):
+                raise ValueError("Checkpoints must be outside feature and image input directories")
+        if checkpoint_root in {artifacts_root.resolve(), reports_root.resolve(),
+                               (artifacts_root / "models").resolve()}:
+            raise ValueError("Use a separate checkpoint directory, not a final output directory")
     train_frame, val_frame, provenance = load_training_features(cfg, config_file=config_file)
     _validate_frames(train_frame, val_frame, cfg)
 
@@ -697,9 +743,45 @@ def run_phase6(cfg: Mapping[str, Any], *, config_file: str | Path = "config.yaml
     folds = make_stratified_folds(train_y, folds=folds_count, seed=seed)
     cv_digest = _folds_digest(folds)
 
-    choice, frequency_train, frequency_val, frequency_names = choose_frequency_features(
-        train_frame, val_frame, cfg
-    )
+    context = (TrainingCheckpoints(checkpoint_dir, _checkpoint_contract(cfg, provenance, folds))
+               if checkpoint_dir is not None else nullcontext(None))
+    with context as checkpoints:
+        if checkpoints is not None:
+            checkpoints.validate_outputs(_phase6_output_paths(artifacts_root, reports_root))
+        return _fit_phase6(cfg, train_frame, val_frame, provenance, folds, checkpoints)
+
+
+def _fit_phase6(
+    cfg: Mapping[str, Any], train_frame: pd.DataFrame, val_frame: pd.DataFrame,
+    provenance: dict[str, Any], folds: Sequence[tuple[np.ndarray, np.ndarray]],
+    checkpoints: TrainingCheckpoints | None,
+) -> dict[str, Any]:
+    training = _training_config(cfg)
+    artifacts_root = Path(cfg["paths"]["artifacts_root"])
+    reports_root = Path(cfg["paths"]["reports_root"])
+    train_y = train_frame["label"].to_numpy(dtype=np.int64)
+    val_y = val_frame["label"].to_numpy(dtype=np.int64)
+    seed, folds_count, iterations = int(cfg["seed"]), int(cfg["cv_folds"]), int(cfg["search_iters"])
+    scoring = str(training.get("scoring", "accuracy"))
+    search_n_jobs = int(training["search_n_jobs"])
+    cv_digest = _folds_digest(folds)
+    if checkpoints is not None:
+        checkpoints.progress("feature_selection")
+    cached_choice = checkpoints.load("feature_choice") if checkpoints is not None else None
+    if cached_choice is None:
+        choice, frequency_train, frequency_val, frequency_names = choose_frequency_features(
+            train_frame, val_frame, cfg
+        )
+        if checkpoints is not None:
+            checkpoints.save("feature_choice", choice)
+    else:
+        choice = cached_choice[0]
+        if choice["r0"] not in _r0_values(cfg) or choice["k_mad"] not in _peak_thresholds(cfg):
+            raise ValueError("Checkpoint feature choice is outside the configured grid")
+        frequency_train, frequency_names = make_frequency_matrix(
+            train_frame, cfg, r0=choice["r0"], k_mad=choice["k_mad"])
+        frequency_val, _ = make_frequency_matrix(
+            val_frame, cfg, r0=choice["r0"], k_mad=choice["k_mad"])
     pixel_train, pixel_names = make_pixel_matrix(train_frame, cfg)
     pixel_val, val_pixel_names = make_pixel_matrix(val_frame, cfg)
     if pixel_names != val_pixel_names:
@@ -714,6 +796,26 @@ def run_phase6(cfg: Mapping[str, Any], *, config_file: str | Path = "config.yaml
     for feature_set in _DEFAULT_FEATURE_SETS:
         x_train, x_val, names = feature_matrices[feature_set]
         for model_name in _DEFAULT_MODEL_ORDER:
+            key = f"{feature_set}_{model_name}"
+            cached = checkpoints.load(key) if checkpoints is not None else None
+            if cached is not None:
+                payload, fitted = cached
+                result = payload["result"]
+                if (payload["feature_names"] != names or result["key"] != key
+                    or result["feature_set"] != feature_set or result["model"] != model_name
+                    or result["feature_count"] != len(names)):
+                    raise ValueError(f"Checkpoint model/schema mismatch: {key}")
+                for metric, value in _metrics(fitted, x_val, val_y).items():
+                    if not np.isclose(value, result[metric], rtol=0, atol=1e-12):
+                        raise ValueError(f"Checkpoint validation metrics mismatch: {key}")
+                fitted_models[key] = fitted
+                results.append(result)
+                checkpoints.progress("reused", key)
+                continue
+            if checkpoints is not None:
+                checkpoints.progress("search", key)
+            else:
+                print(f"[Phase 6] search: {key}", file=sys.stderr, flush=True)
             pipeline = make_pipeline(model_name, cfg)
             parameter_distributions = search_space(model_name, cfg)
             search = RandomizedSearchCV(
@@ -727,8 +829,11 @@ def run_phase6(cfg: Mapping[str, Any], *, config_file: str | Path = "config.yaml
                 refit=True,
                 error_score="raise",
                 return_train_score=False,
+                verbose=1,
             )
             search.fit(x_train, train_y)
+            if checkpoints is not None:
+                checkpoints.progress("calibration" if model_name == "svm" else "refit", key)
             if model_name == "svm":
                 calibration_cfg = _mapping(
                     training.get("calibration", {}), "training.calibration"
@@ -746,7 +851,6 @@ def run_phase6(cfg: Mapping[str, Any], *, config_file: str | Path = "config.yaml
                 fitted = clone(search.best_estimator_).fit(x_train, train_y)
 
             metrics = _metrics(fitted, x_val, val_y)
-            key = f"{feature_set}_{model_name}"
             model_path = artifacts_root / "models" / f"{key}.joblib"
             fitted_models[key] = fitted
             results.append(
@@ -762,6 +866,9 @@ def run_phase6(cfg: Mapping[str, Any], *, config_file: str | Path = "config.yaml
                     "model_path": model_path.as_posix(),
                 }
             )
+            if checkpoints is not None:
+                checkpoints.save(key, {"result": results[-1], "feature_names": names}, fitted)
+                checkpoints.progress("checkpoint_saved", key)
 
     tie_order = tuple(training.get("primary_model_tie_order", _DEFAULT_MODEL_ORDER))
     frequency_results = [result for result in results if result["feature_set"] == "frequency"]
@@ -811,15 +918,24 @@ def run_phase6(cfg: Mapping[str, Any], *, config_file: str | Path = "config.yaml
         "test_features_read": False,
         "feature_importance": "descriptive only; not used for selection",
     }
+    if checkpoints is not None:
+        run_record["checkpoint_contract_sha256"] = checkpoints.digest
+        checkpoints.progress("finalizing")
+    output_artifacts = checkpoints.root / "staging/artifacts" if checkpoints is not None else artifacts_root
+    output_reports = checkpoints.root / "staging/reports" if checkpoints is not None else reports_root
 
     # Write results only after all six searches, calibrations, and validation
-    # metrics completed successfully.
-    _write_json(artifacts_root / "feature_choice.json", choice)
-    _write_json(artifacts_root / "primary_model.json", primary_record)
-    _write_json(artifacts_root / "versions.json", versions)
-    _write_json(artifacts_root / "training_results.json", run_record)
+    # metrics completed successfully. Checkpoints remain separate from these
+    # official outputs until publication; they are not freeze-ready artifacts.
+    _write_json(output_artifacts / "feature_choice.json", choice)
+    _write_json(output_artifacts / "primary_model.json", primary_record)
+    _write_json(output_artifacts / "versions.json", versions)
     for key, model in fitted_models.items():
-        _write_model(artifacts_root / "models" / f"{key}.joblib", model)
+        if checkpoints is None:
+            _write_model(output_artifacts / "models" / f"{key}.joblib", model)
+        else:
+            from aidetect.training_checkpoints import _atomic_copy
+            _atomic_copy(checkpoints.root / f"{key}.joblib", output_artifacts / "models" / f"{key}.joblib")
 
     importance_paths: dict[str, dict[str, str]] = {}
     frequency_result_by_model = {
@@ -835,26 +951,27 @@ def run_phase6(cfg: Mapping[str, Any], *, config_file: str | Path = "config.yaml
     )
     for model_name, fitted in frequency_result_by_model.items():
         estimator = fitted.named_steps["classifier"]
-        importance_paths[model_name] = dict(
-            zip(
-                ("csv", "figure"),
-                _write_importance(
-                    reports_root,
-                    model_name,
-                    np.asarray(estimator.feature_importances_, dtype=np.float64),
-                    frequency_names,
-                    top_n,
-                    figure_dpi,
-                ),
-            )
-        )
+        generated = _write_importance(output_reports, model_name,
+            np.asarray(estimator.feature_importances_, dtype=np.float64), frequency_names, top_n, figure_dpi)
+        importance_paths[model_name] = {
+            kind: str(reports_root / Path(path).relative_to(output_reports))
+            for kind, path in zip(("csv", "figure"), generated)
+        }
     run_record["feature_importance_outputs"] = importance_paths
-    _write_json(artifacts_root / "training_results.json", run_record)
-    _write_json(reports_root / "phase_6_results.json", run_record)
-    reports_root.mkdir(parents=True, exist_ok=True)
-    (reports_root / "phase_6_results.md").write_text(
+    _write_json(output_artifacts / "training_results.json", run_record)
+    _write_json(output_reports / "phase_6_results.json", run_record)
+    output_reports.mkdir(parents=True, exist_ok=True)
+    (output_reports / "phase_6_results.md").write_text(
         _format_results_markdown(results), encoding="utf-8"
     )
+    if checkpoints is not None:
+        for target in _phase6_output_paths(artifacts_root, reports_root):
+            if target.is_relative_to(artifacts_root):
+                source = output_artifacts / target.relative_to(artifacts_root)
+            else:
+                source = output_reports / target.relative_to(reports_root)
+            checkpoints.publish(source, target)
+        checkpoints.finish()
     return run_record
 
 

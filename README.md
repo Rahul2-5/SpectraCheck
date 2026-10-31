@@ -157,6 +157,28 @@ frequency model is selected by validation accuracy before test access.
 python scripts/train_models.py
 ```
 
+For R2 in Colab, the updated Phase 6 cells enable persistent model checkpoints:
+
+```text
+python scripts/train_models.py --config config_r2.yaml --checkpoint-dir /content/drive/MyDrive/aidetect/r2/phase6_checkpoints
+```
+
+Rerun this same command after a stopped runtime is restored with the same
+checkout, dependencies, config and frozen inputs. It saves feature selection
+and each of the six completed pipelines, including calibration and validation
+metrics. Completed pipelines are verified and reused; an interrupted pipeline
+restarts its search. Individual search trials are not checkpointed.
+`status.json` in that Drive folder shows the current stage/model and completed
+models. Final research artifacts are published only after all six finish.
+
+Resume rejects changed input bytes, code, dependency/Python versions, config,
+folds, checkpoint checksums or existing outputs owned by another run. A killed
+runtime may leave `running.lock`: confirm that its previous process/runtime
+has stopped before removing only that lock and resuming. Keep the checkpoint
+folder and its manifest/receipts together. A successful completed run refuses
+another run; missing final artifacts can be restored from its checkpoints.
+This option cannot add checkpoints to an already running older process.
+
 Outputs include `artifacts/feature_choice.json`,
 `artifacts/primary_model.json`, `artifacts/versions.json`, six ignored model
 files under `artifacts/models/`, and the actual run tables under

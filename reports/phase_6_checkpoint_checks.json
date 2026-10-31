@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-31",
+  "phase": 6,
+  "scope": "per-model checkpoints and validated resume; synthetic verification",
+  "status": "implemented_and_locally_verified",
+  "python": "3.13.5",
+  "full_python_tests": {"passed": 185, "seconds": 76.63, "execution": "outside Windows sandbox"},
+  "sandbox_issue": "Existing API test hung creating Windows asyncio socketpair; same test and full suite passed outside sandbox",
+  "pip_check": "passed",
+  "notebook_and_helper_parsing": "passed",
+  "r2_config_sha256": "ac92656ca11539bf8aaa7c6c89d9851ddf006ed4fc514a99ba6b2e9bae24d7d6",
+  "checkpoint_dir": "/content/drive/MyDrive/aidetect/r2/phase6_checkpoints",
+  "per_trial_resume": false,
+  "live_colab_process_modified": false,
+  "live_checkpoint_run_started": false,
+  "real_training_completion_verified_by_this_task": false,
+  "real_test_feature_values_read": false,
+  "freeze_created": false,
+  "evaluation_started": false
+}

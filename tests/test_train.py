@@ -27,6 +27,7 @@ from aidetect.train import (
     run_phase6,
     search_space,
 )
+from aidetect.training_checkpoints import TrainingCheckpoints
 
 
 ROOT = Path(__file__).parents[1]
@@ -352,3 +353,176 @@ def test_training_loader_rejects_wrong_config_hash_without_reading_test(tmp_path
     )
     with pytest.raises(ValueError, match="aidetect_config_hash"):
         load_training_features(cfg, config_file="synthetic.yaml")
+
+
+def test_checkpoint_resume_skips_completed_search_and_selection_with_identical_results(tmp_path, monkeypatch):
+    cfg = _cfg(tmp_path)
+    _write_training_inputs(cfg, rows_per_class=12)
+    checkpoint_dir = tmp_path / "checkpoints"
+    original_fit = train_module.RandomizedSearchCV.fit
+    searches = []
+
+    def interrupt_second_search(search, *args, **kwargs):
+        searches.append(type(search.estimator.named_steps['classifier']).__name__)
+        if len(searches) == 2:
+            raise KeyboardInterrupt("synthetic interruption")
+        return original_fit(search, *args, **kwargs)
+
+    monkeypatch.setattr(train_module.RandomizedSearchCV, "fit", interrupt_second_search)
+    with pytest.raises(KeyboardInterrupt):
+        run_phase6(cfg, checkpoint_dir=checkpoint_dir)
+    manifest = json.loads((checkpoint_dir / "manifest.json").read_text())
+    assert set(manifest['entries']) == {'feature_choice', 'frequency_svm'}
+    assert not (Path(cfg['paths']['artifacts_root']) / 'feature_choice.json').exists()
+    assert not (checkpoint_dir / 'running.lock').exists()
+    status = json.loads((checkpoint_dir / 'status.json').read_text())
+    assert status['stage'] == 'interrupted' and status['current_model'] == 'frequency_rf'
+    assert status['completed_models'] == ['frequency_svm']
+
+    searches.clear()
+    def count_remaining(search, *args, **kwargs):
+        searches.append(type(search.estimator.named_steps['classifier']).__name__)
+        return original_fit(search, *args, **kwargs)
+    monkeypatch.setattr(train_module.RandomizedSearchCV, "fit", count_remaining)
+    original_selection = train_module.choose_frequency_features
+    monkeypatch.setattr(train_module, 'choose_frequency_features',
+                        lambda *a, **k: pytest.fail('Completed selection must be reused'))
+    result = run_phase6(cfg, checkpoint_dir=checkpoint_dir)
+    assert len(searches) == 5 and searches[0] == 'RandomForestClassifier'
+    assert json.loads((checkpoint_dir / 'manifest.json').read_text())['complete']
+    assert json.loads((checkpoint_dir / 'status.json').read_text())['stage'] == 'completed'
+
+    # Compare resumed scores, selected settings and predictions to uninterrupted execution.
+    clean_cfg = _cfg(tmp_path / 'control')
+    _write_training_inputs(clean_cfg, rows_per_class=12)
+    monkeypatch.setattr(train_module, 'choose_frequency_features', original_selection)
+    monkeypatch.setattr(train_module.RandomizedSearchCV, 'fit', original_fit)
+    clean = run_phase6(clean_cfg)
+    assert result['feature_choice']['candidates'] == clean['feature_choice']['candidates']
+    for resumed, uninterrupted in zip(result['models'], clean['models']):
+        assert {k: v for k, v in resumed.items() if k != 'model_path'} == {
+            k: v for k, v in uninterrupted.items() if k != 'model_path'}
+        a, b = joblib.load(resumed['model_path']), joblib.load(uninterrupted['model_path'])
+        x = np.zeros((3, resumed['feature_count']))
+        assert np.array_equal(a.predict_proba(x), b.predict_proba(x))
+
+    with pytest.raises(FileExistsError, match='complete'):
+        run_phase6(cfg, checkpoint_dir=checkpoint_dir)
+    assert json.loads((checkpoint_dir / 'status.json').read_text())['stage'] == 'completed'
+    # A new runtime can restore missing final artifacts entirely from Drive checkpoints.
+    Path(result['models'][0]['model_path']).unlink()
+    monkeypatch.setattr(train_module.RandomizedSearchCV, 'fit',
+                        lambda *a, **k: pytest.fail('Restoring outputs must not fit again'))
+    restored = run_phase6(cfg, checkpoint_dir=checkpoint_dir)
+    assert restored == result
+    assert Path(result['models'][0]['model_path']).is_file()
+
+
+def test_checkpoint_final_publication_is_resumable_and_rejects_changed_outputs(tmp_path, monkeypatch):
+    cfg = _cfg(tmp_path)
+    _write_training_inputs(cfg, rows_per_class=12)
+    root = tmp_path / 'checkpoints'
+    publish = TrainingCheckpoints.publish
+    installed = []
+    def fail_after_first(store, source, target):
+        publish(store, source, target)
+        installed.append(target)
+        raise OSError('simulated disconnect during final publication')
+    monkeypatch.setattr(TrainingCheckpoints, 'publish', fail_after_first)
+    with pytest.raises(OSError, match='publication'):
+        run_phase6(cfg, checkpoint_dir=root)
+    assert len(json.loads((root / 'manifest.json').read_text())['entries']) == 7
+    assert installed[0].is_file()
+    monkeypatch.setattr(TrainingCheckpoints, 'publish', publish)
+    monkeypatch.setattr(train_module.RandomizedSearchCV, 'fit',
+                        lambda *a, **k: pytest.fail('All six searches must be reused'))
+    original_bytes = installed[0].read_bytes()
+    installed[0].write_bytes(b'changed final output')
+    with pytest.raises(FileExistsError, match='changed'):
+        run_phase6(cfg, checkpoint_dir=root)
+    installed[0].write_bytes(original_bytes)
+    result = run_phase6(cfg, checkpoint_dir=root)
+    assert len(result['models']) == 6
+    assert all(Path(m['model_path']).is_file() for m in result['models'])
+
+
+@pytest.mark.parametrize('changed', ['model', 'receipt', 'feature_bytes', 'versions', 'code', 'folds'])
+def test_checkpoint_changes_rejected_before_deserialization_or_training(tmp_path, monkeypatch, changed):
+    cfg = _cfg(tmp_path)
+    _write_training_inputs(cfg, rows_per_class=12)
+    root = tmp_path / 'checkpoints'
+    fit = train_module.RandomizedSearchCV.fit
+    calls = []
+    def stop_after_one(search, *args, **kwargs):
+        calls.append(1)
+        if len(calls) == 2:
+            raise RuntimeError('intentional stop')
+        return fit(search, *args, **kwargs)
+    monkeypatch.setattr(train_module.RandomizedSearchCV, 'fit', stop_after_one)
+    with pytest.raises(RuntimeError, match='intentional'):
+        run_phase6(cfg, checkpoint_dir=root)
+    if changed == 'model':
+        (root / 'frequency_svm.joblib').write_bytes(b'invalid model')
+    elif changed == 'receipt':
+        (root / 'frequency_svm.json').write_text('{}')
+    elif changed == 'feature_bytes':
+        path = Path(cfg['paths']['features_root']) / 'train/batch_00000.parquet'
+        table = pq.read_table(path)
+        frame = table.to_pandas()
+        frame.loc[0, 'pixel_0000'] += 0.1
+        replacement = pa.Table.from_pandas(frame, preserve_index=False).replace_schema_metadata(table.schema.metadata)
+        pq.write_table(replacement, path)
+    else:
+        original_contract = train_module._checkpoint_contract
+        def alter_contract(*args):
+            result = original_contract(*args)
+            if changed == 'versions':
+                result['versions']['joblib'] = 'different'
+            elif changed == 'code':
+                result['source_sha256']['aidetect/train.py'] = '0' * 64
+            else:
+                result['cv_splits_sha256'] = '0' * 64
+            return result
+        monkeypatch.setattr(train_module, '_checkpoint_contract', alter_contract)
+    monkeypatch.setattr(train_module.joblib, 'load',
+                        lambda *a, **k: pytest.fail('Reject changed provenance before loading model'))
+    monkeypatch.setattr(train_module.RandomizedSearchCV, 'fit',
+                        lambda *a, **k: pytest.fail('Reject changed provenance before fitting'))
+    with pytest.raises(ValueError, match='checksum|contract'):
+        run_phase6(cfg, checkpoint_dir=root)
+
+
+def test_checkpoint_lock_and_uncommitted_write_do_not_reuse_partial_models(tmp_path, monkeypatch):
+    root = tmp_path / 'checkpoints'
+    contract = {'config_sha256': 'synthetic'}
+    with TrainingCheckpoints(root, contract) as store:
+        with pytest.raises(RuntimeError, match='writer lock exists'):
+            with TrainingCheckpoints(root, contract):
+                pytest.fail('Concurrent writer was admitted')
+        assert (root / 'running.lock').exists()
+        def fail_commit():
+            raise OSError('commit interrupted')
+        monkeypatch.setattr(store, '_commit', fail_commit)
+        with pytest.raises(OSError):
+            store.save('frequency_svm', {'result': {}}, {'synthetic': True})
+    with TrainingCheckpoints(root, contract) as store:
+        assert store.load('frequency_svm') is None
+        store.save('frequency_svm', {'result': {'complete': True}}, {'synthetic': True})
+        payload, model = store.load('frequency_svm')
+        assert payload['result']['complete'] and model['synthetic']
+        with pytest.raises(ValueError, match='already committed'):
+            store.save('frequency_svm', {}, {})
+        with pytest.raises(RuntimeError, match='incomplete'):
+            store.finish()
+    (root / 'running.lock').write_text('stale lock left by killed runtime')
+    with pytest.raises(RuntimeError, match='previous runtime/process stopped'):
+        with TrainingCheckpoints(root, contract):
+            pass
+
+
+def test_checkpoint_path_cannot_overlap_sealed_feature_inputs(tmp_path):
+    cfg = _cfg(tmp_path)
+    sealed = Path(cfg['paths']['features_root']) / 'test_sealed'
+    with pytest.raises(ValueError, match='outside feature and image'):
+        run_phase6(cfg, checkpoint_dir=sealed)
+    assert not sealed.exists()

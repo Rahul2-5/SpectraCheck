@@ -81,4 +81,10 @@ The real-data outputs `artifacts/feature_choice.json`, `artifacts/primary_model.
 
 ## STOP
 
+31 October 2026 checkpoint implementation follow-up: optional per-model resume
+is now available through `--checkpoint-dir`; see
+`reports/phase_6_checkpoint_report.md` for the synthetic verification and scope.
+It preserves the configured research protocol and does not establish real
+training completion or authorize Phase 7.
+
 Phase 6 code and local checks are complete. Wait for the team to run and review the real Colab checks, agree and record the practical-use target, and for your explicit **`PROCEED TO PHASE 7`** approval. Do not start Phase 7 from this report alone.

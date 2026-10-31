@@ -24,10 +24,14 @@ def main() -> int:
         default=str(PROJECT_ROOT / "config.yaml"),
         help="Path to the project YAML configuration",
     )
+    parser.add_argument(
+        "--checkpoint-dir", type=Path,
+        help="Optional persistent directory for verified per-model resume; use the same Drive path on restart",
+    )
     args = parser.parse_args()
     config_path = Path(args.config).resolve()
     cfg = load_config(config_path)
-    result = run_phase6(cfg, config_file=config_path)
+    result = run_phase6(cfg, config_file=config_path, checkpoint_dir=args.checkpoint_dir)
     print(
         json.dumps(
             {

@@ -1,5 +1,11 @@
 # R2 Phase 6 launch — 31 October 2026
 
+Checkpoint follow-up: the user requested per-model checkpoints. The source and
+canonical notebook now support persistent Drive checkpoints for subsequent
+starts/resumes; see `phase_6_checkpoint_report.md`. The running process launched
+below predates that change and has not been interrupted, updated or represented
+as checkpoint-protected. Its completion remains unverified by this coding task.
+
 ## Confirmed live launch
 
 **Training started; completion and metrics remain pending.** The user again requested the next steps after Phase 5. Verified the completed Phase 5 record (`1c685da37bcd768f99374d1b13e590a542b2531617198507234b7b5f579e7c66`), then ran readiness and the explicit R2 training cell. Readiness confirmed matching config/split provenance, no existing model/results, and no freeze/evaluation marker.

@@ -20,6 +20,8 @@ features/
 *.npz
 artifacts/models/
 artifacts/r2/models/
+artifacts/phase6_checkpoints/
+artifacts/r2/phase6_checkpoints/
 
 # Machine-specific settings and credentials
 .env
