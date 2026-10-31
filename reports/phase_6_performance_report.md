@@ -1,3 +1,5 @@
+> Latest verified execution (31 October 2026): R2 Phase 6 training is complete under the explicitly approved RF/T4 profile, with all six model metrics reproduced and Drive backups verified. See [the final completion report](phase_6_fast_rf_t4_report.md) and `phase_6_fast_rf_t4_checks.json`. The original full-budget run below is historical and is not represented as completed. Test values remain sealed; Phase 7 is unauthorized.
+
 # Phase 6 performance amendment — 31 October 2026
 
 The user approved a faster CPU/T4 execution plan, including reducing shared CV

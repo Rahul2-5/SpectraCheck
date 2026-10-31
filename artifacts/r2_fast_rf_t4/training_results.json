@@ -1,0 +1,678 @@
+{
+  "checkpoint_contract_sha256": "eb2767373ddc9b1e140a25162fe8b2164b12eea9436f2260fc1c67aa4bf666e1",
+  "config_file": "/content/ai-image-fft-detector/config_r2_fast_rf_t4.yaml",
+  "config_sha256": "46dbd2c248195aae6eef02a2219a56747090b4bb5f88e3cfb372ced68515766f",
+  "cv_folds": 3,
+  "cv_splits_sha256": "5e654622618a7a2241cf39f2246287b38f90660e72caaa251a8f0f570bc77e92",
+  "execution": {
+    "blas_threads": 1,
+    "estimator_n_jobs": 1,
+    "search_workers": 2,
+    "xgb_device": "cuda",
+    "xgb_search_workers": 1
+  },
+  "feature_batches": {
+    "train": [
+      {
+        "path": "train/batch_00000.parquet",
+        "sha256": "4f6966fc404047b3cfdf6a4f191c45e498fda1a04fc2aa02cfab5ea9b1932c2e"
+      },
+      {
+        "path": "train/batch_00001.parquet",
+        "sha256": "746b042fcb4d5ce2eb0528ebc859807045d080c1ff5eac30b6c11f0645244583"
+      },
+      {
+        "path": "train/batch_00002.parquet",
+        "sha256": "d7862aab00edb63fab69c5d3a1050866ad3c2331769c098893a67d0c8d578f5c"
+      },
+      {
+        "path": "train/batch_00003.parquet",
+        "sha256": "9fb6acf73a0ec458415463d76a75a8a439a1efcb9a6403227b209c3598da6483"
+      },
+      {
+        "path": "train/batch_00004.parquet",
+        "sha256": "5789fa0613f5857ac29a8fed494a2ed68ef298aa276a796b6045130fc12282ce"
+      },
+      {
+        "path": "train/batch_00005.parquet",
+        "sha256": "c4f8ce16f7222b803b475446ae7242c249384b1c4ff349c727cae67208a344b2"
+      },
+      {
+        "path": "train/batch_00006.parquet",
+        "sha256": "f48534d7f72ce4dfdbed6a95850a15bf0c277a8b530843ddab4904e01244d5e9"
+      }
+    ],
+    "val": [
+      {
+        "path": "val/batch_00000.parquet",
+        "sha256": "54ecb64986fce38616089b394c8e8abfa1d06b2b411e55d14bcfb89e323524e9"
+      },
+      {
+        "path": "val/batch_00001.parquet",
+        "sha256": "066195f710e6fbef9565a622f3fb7385980b7d7ab9b8896537aa36e7b5146461"
+      }
+    ]
+  },
+  "feature_choice": {
+    "candidates": [
+      {
+        "k_mad": 3,
+        "r0": 8,
+        "validation_accuracy": 0.7666666666666667
+      },
+      {
+        "k_mad": 4,
+        "r0": 8,
+        "validation_accuracy": 0.7693333333333333
+      },
+      {
+        "k_mad": 5,
+        "r0": 8,
+        "validation_accuracy": 0.7706666666666667
+      },
+      {
+        "k_mad": 6,
+        "r0": 8,
+        "validation_accuracy": 0.776
+      },
+      {
+        "k_mad": 8,
+        "r0": 8,
+        "validation_accuracy": 0.7706666666666667
+      },
+      {
+        "k_mad": 3,
+        "r0": 16,
+        "validation_accuracy": 0.772
+      },
+      {
+        "k_mad": 4,
+        "r0": 16,
+        "validation_accuracy": 0.7666666666666667
+      },
+      {
+        "k_mad": 5,
+        "r0": 16,
+        "validation_accuracy": 0.7573333333333333
+      },
+      {
+        "k_mad": 6,
+        "r0": 16,
+        "validation_accuracy": 0.7733333333333333
+      },
+      {
+        "k_mad": 8,
+        "r0": 16,
+        "validation_accuracy": 0.7706666666666667
+      },
+      {
+        "k_mad": 3,
+        "r0": 24,
+        "validation_accuracy": 0.776
+      },
+      {
+        "k_mad": 4,
+        "r0": 24,
+        "validation_accuracy": 0.7613333333333333
+      },
+      {
+        "k_mad": 5,
+        "r0": 24,
+        "validation_accuracy": 0.7693333333333333
+      },
+      {
+        "k_mad": 6,
+        "r0": 24,
+        "validation_accuracy": 0.7733333333333333
+      },
+      {
+        "k_mad": 8,
+        "r0": 24,
+        "validation_accuracy": 0.7746666666666666
+      },
+      {
+        "k_mad": 3,
+        "r0": 32,
+        "validation_accuracy": 0.7773333333333333
+      },
+      {
+        "k_mad": 4,
+        "r0": 32,
+        "validation_accuracy": 0.7693333333333333
+      },
+      {
+        "k_mad": 5,
+        "r0": 32,
+        "validation_accuracy": 0.7813333333333333
+      },
+      {
+        "k_mad": 6,
+        "r0": 32,
+        "validation_accuracy": 0.7626666666666667
+      },
+      {
+        "k_mad": 8,
+        "r0": 32,
+        "validation_accuracy": 0.7746666666666666
+      },
+      {
+        "k_mad": 3,
+        "r0": 40,
+        "validation_accuracy": 0.7786666666666666
+      },
+      {
+        "k_mad": 4,
+        "r0": 40,
+        "validation_accuracy": 0.772
+      },
+      {
+        "k_mad": 5,
+        "r0": 40,
+        "validation_accuracy": 0.7733333333333333
+      },
+      {
+        "k_mad": 6,
+        "r0": 40,
+        "validation_accuracy": 0.772
+      },
+      {
+        "k_mad": 8,
+        "r0": 40,
+        "validation_accuracy": 0.7626666666666667
+      },
+      {
+        "k_mad": 3,
+        "r0": 48,
+        "validation_accuracy": 0.7733333333333333
+      },
+      {
+        "k_mad": 4,
+        "r0": 48,
+        "validation_accuracy": 0.7693333333333333
+      },
+      {
+        "k_mad": 5,
+        "r0": 48,
+        "validation_accuracy": 0.7826666666666666
+      },
+      {
+        "k_mad": 6,
+        "r0": 48,
+        "validation_accuracy": 0.768
+      },
+      {
+        "k_mad": 8,
+        "r0": 48,
+        "validation_accuracy": 0.7706666666666667
+      },
+      {
+        "k_mad": 3,
+        "r0": 56,
+        "validation_accuracy": 0.7746666666666666
+      },
+      {
+        "k_mad": 4,
+        "r0": 56,
+        "validation_accuracy": 0.7693333333333333
+      },
+      {
+        "k_mad": 5,
+        "r0": 56,
+        "validation_accuracy": 0.772
+      },
+      {
+        "k_mad": 6,
+        "r0": 56,
+        "validation_accuracy": 0.768
+      },
+      {
+        "k_mad": 8,
+        "r0": 56,
+        "validation_accuracy": 0.7733333333333333
+      },
+      {
+        "k_mad": 3,
+        "r0": 64,
+        "validation_accuracy": 0.7666666666666667
+      },
+      {
+        "k_mad": 4,
+        "r0": 64,
+        "validation_accuracy": 0.7666666666666667
+      },
+      {
+        "k_mad": 5,
+        "r0": 64,
+        "validation_accuracy": 0.7773333333333333
+      },
+      {
+        "k_mad": 6,
+        "r0": 64,
+        "validation_accuracy": 0.7706666666666667
+      },
+      {
+        "k_mad": 8,
+        "r0": 64,
+        "validation_accuracy": 0.776
+      },
+      {
+        "k_mad": 3,
+        "r0": 72,
+        "validation_accuracy": 0.7746666666666666
+      },
+      {
+        "k_mad": 4,
+        "r0": 72,
+        "validation_accuracy": 0.764
+      },
+      {
+        "k_mad": 5,
+        "r0": 72,
+        "validation_accuracy": 0.7813333333333333
+      },
+      {
+        "k_mad": 6,
+        "r0": 72,
+        "validation_accuracy": 0.7773333333333333
+      },
+      {
+        "k_mad": 8,
+        "r0": 72,
+        "validation_accuracy": 0.7693333333333333
+      },
+      {
+        "k_mad": 3,
+        "r0": 80,
+        "validation_accuracy": 0.784
+      },
+      {
+        "k_mad": 4,
+        "r0": 80,
+        "validation_accuracy": 0.7746666666666666
+      },
+      {
+        "k_mad": 5,
+        "r0": 80,
+        "validation_accuracy": 0.776
+      },
+      {
+        "k_mad": 6,
+        "r0": 80,
+        "validation_accuracy": 0.7786666666666666
+      },
+      {
+        "k_mad": 8,
+        "r0": 80,
+        "validation_accuracy": 0.7773333333333333
+      },
+      {
+        "k_mad": 3,
+        "r0": 88,
+        "validation_accuracy": 0.776
+      },
+      {
+        "k_mad": 4,
+        "r0": 88,
+        "validation_accuracy": 0.776
+      },
+      {
+        "k_mad": 5,
+        "r0": 88,
+        "validation_accuracy": 0.7786666666666666
+      },
+      {
+        "k_mad": 6,
+        "r0": 88,
+        "validation_accuracy": 0.7626666666666667
+      },
+      {
+        "k_mad": 8,
+        "r0": 88,
+        "validation_accuracy": 0.78
+      },
+      {
+        "k_mad": 3,
+        "r0": 96,
+        "validation_accuracy": 0.772
+      },
+      {
+        "k_mad": 4,
+        "r0": 96,
+        "validation_accuracy": 0.7693333333333333
+      },
+      {
+        "k_mad": 5,
+        "r0": 96,
+        "validation_accuracy": 0.772
+      },
+      {
+        "k_mad": 6,
+        "r0": 96,
+        "validation_accuracy": 0.7733333333333333
+      },
+      {
+        "k_mad": 8,
+        "r0": 96,
+        "validation_accuracy": 0.7666666666666667
+      },
+      {
+        "k_mad": 3,
+        "r0": 104,
+        "validation_accuracy": 0.768
+      },
+      {
+        "k_mad": 4,
+        "r0": 104,
+        "validation_accuracy": 0.772
+      },
+      {
+        "k_mad": 5,
+        "r0": 104,
+        "validation_accuracy": 0.7813333333333333
+      },
+      {
+        "k_mad": 6,
+        "r0": 104,
+        "validation_accuracy": 0.7746666666666666
+      },
+      {
+        "k_mad": 8,
+        "r0": 104,
+        "validation_accuracy": 0.7693333333333333
+      },
+      {
+        "k_mad": 3,
+        "r0": 112,
+        "validation_accuracy": 0.7706666666666667
+      },
+      {
+        "k_mad": 4,
+        "r0": 112,
+        "validation_accuracy": 0.7746666666666666
+      },
+      {
+        "k_mad": 5,
+        "r0": 112,
+        "validation_accuracy": 0.7786666666666666
+      },
+      {
+        "k_mad": 6,
+        "r0": 112,
+        "validation_accuracy": 0.7733333333333333
+      },
+      {
+        "k_mad": 8,
+        "r0": 112,
+        "validation_accuracy": 0.7653333333333333
+      },
+      {
+        "k_mad": 3,
+        "r0": 120,
+        "validation_accuracy": 0.7693333333333333
+      },
+      {
+        "k_mad": 4,
+        "r0": 120,
+        "validation_accuracy": 0.78
+      },
+      {
+        "k_mad": 5,
+        "r0": 120,
+        "validation_accuracy": 0.7866666666666666
+      },
+      {
+        "k_mad": 6,
+        "r0": 120,
+        "validation_accuracy": 0.776
+      },
+      {
+        "k_mad": 8,
+        "r0": 120,
+        "validation_accuracy": 0.7786666666666666
+      }
+    ],
+    "config_file": "/content/ai-image-fft-detector/config_r2_fast_rf_t4.yaml",
+    "config_sha256": "46dbd2c248195aae6eef02a2219a56747090b4bb5f88e3cfb372ced68515766f",
+    "feature_batches": {
+      "train": [
+        {
+          "path": "train/batch_00000.parquet",
+          "sha256": "4f6966fc404047b3cfdf6a4f191c45e498fda1a04fc2aa02cfab5ea9b1932c2e"
+        },
+        {
+          "path": "train/batch_00001.parquet",
+          "sha256": "746b042fcb4d5ce2eb0528ebc859807045d080c1ff5eac30b6c11f0645244583"
+        },
+        {
+          "path": "train/batch_00002.parquet",
+          "sha256": "d7862aab00edb63fab69c5d3a1050866ad3c2331769c098893a67d0c8d578f5c"
+        },
+        {
+          "path": "train/batch_00003.parquet",
+          "sha256": "9fb6acf73a0ec458415463d76a75a8a439a1efcb9a6403227b209c3598da6483"
+        },
+        {
+          "path": "train/batch_00004.parquet",
+          "sha256": "5789fa0613f5857ac29a8fed494a2ed68ef298aa276a796b6045130fc12282ce"
+        },
+        {
+          "path": "train/batch_00005.parquet",
+          "sha256": "c4f8ce16f7222b803b475446ae7242c249384b1c4ff349c727cae67208a344b2"
+        },
+        {
+          "path": "train/batch_00006.parquet",
+          "sha256": "f48534d7f72ce4dfdbed6a95850a15bf0c277a8b530843ddab4904e01244d5e9"
+        }
+      ],
+      "val": [
+        {
+          "path": "val/batch_00000.parquet",
+          "sha256": "54ecb64986fce38616089b394c8e8abfa1d06b2b411e55d14bcfb89e323524e9"
+        },
+        {
+          "path": "val/batch_00001.parquet",
+          "sha256": "066195f710e6fbef9565a622f3fb7385980b7d7ab9b8896537aa36e7b5146461"
+        }
+      ]
+    },
+    "feature_config_sha256": "ac92656ca11539bf8aaa7c6c89d9851ddf006ed4fc514a99ba6b2e9bae24d7d6",
+    "k_mad": 5,
+    "r0": 120,
+    "selection_rule": "highest validation accuracy; ties use smallest r0, then smallest k_mad",
+    "splits_sha256": "1e823b5df253951bc2a7221b618fc7c0e5716f85066d509a3d9442c56ccfef93",
+    "train_ids_sha256": "af330d6bec3e0c6037ad362f0d216d25d853835b59fa9b03da8fd76f333d9642",
+    "train_rows": 3500,
+    "validation_accuracy": 0.7866666666666666,
+    "validation_ids_sha256": "8941e24b7bc6793e28326d06c556bbef27307b1520c57755ad568dc5963e1c59",
+    "validation_rows": 750
+  },
+  "feature_config_sha256": "ac92656ca11539bf8aaa7c6c89d9851ddf006ed4fc514a99ba6b2e9bae24d7d6",
+  "feature_importance": "descriptive only; not used for selection",
+  "feature_importance_outputs": {
+    "rf": {
+      "csv": "reports/r2_fast_rf_t4/figures/phase_6_feature_importance_frequency_rf.csv",
+      "figure": "reports/r2_fast_rf_t4/figures/phase_6_feature_importance_frequency_rf.png"
+    },
+    "xgb": {
+      "csv": "reports/r2_fast_rf_t4/figures/phase_6_feature_importance_frequency_xgb.csv",
+      "figure": "reports/r2_fast_rf_t4/figures/phase_6_feature_importance_frequency_xgb.png"
+    }
+  },
+  "models": [
+    {
+      "best_params": {
+        "classifier__C": 145.2824663751601,
+        "classifier__gamma": 0.0007068974950624604
+      },
+      "cv_mean": 0.8365767095213669,
+      "cv_sd": 0.02100361740444659,
+      "feature_count": 68,
+      "feature_set": "frequency",
+      "key": "frequency_svm",
+      "model": "svm",
+      "model_path": "artifacts/r2_fast_rf_t4/models/frequency_svm.joblib",
+      "validation_accuracy": 0.8066666666666666,
+      "validation_brier_score": 0.1355681412004112,
+      "validation_roc_auc": 0.8830720000000001
+    },
+    {
+      "best_params": {
+        "classifier__max_depth": 10,
+        "classifier__max_features": "sqrt",
+        "classifier__min_samples_leaf": 6,
+        "classifier__n_estimators": 152
+      },
+      "cv_mean": 0.7748602090164879,
+      "cv_sd": 0.028322027416844135,
+      "feature_count": 68,
+      "feature_set": "frequency",
+      "key": "frequency_rf",
+      "model": "rf",
+      "model_path": "artifacts/r2_fast_rf_t4/models/frequency_rf.joblib",
+      "validation_accuracy": 0.768,
+      "validation_brier_score": 0.1549320461321875,
+      "validation_roc_auc": 0.8560924444444445
+    },
+    {
+      "best_params": {
+        "classifier__colsample_bytree": 0.8037724259507192,
+        "classifier__learning_rate": 0.059451995869314544,
+        "classifier__max_depth": 8,
+        "classifier__n_estimators": 473,
+        "classifier__subsample": 0.9795542149013333
+      },
+      "cv_mean": 0.7934319672448401,
+      "cv_sd": 0.020038557221165917,
+      "feature_count": 68,
+      "feature_set": "frequency",
+      "key": "frequency_xgb",
+      "model": "xgb",
+      "model_path": "artifacts/r2_fast_rf_t4/models/frequency_xgb.joblib",
+      "validation_accuracy": 0.7893333333333333,
+      "validation_brier_score": 0.15546895591553536,
+      "validation_roc_auc": 0.8694684444444445
+    },
+    {
+      "best_params": {
+        "classifier__C": 1.4445251022763053,
+        "classifier__gamma": 0.0014618962793704966
+      },
+      "cv_mean": 0.6408524298129963,
+      "cv_sd": 0.013784863618470615,
+      "feature_count": 1024,
+      "feature_set": "pixel",
+      "key": "pixel_svm",
+      "model": "svm",
+      "model_path": "artifacts/r2_fast_rf_t4/models/pixel_svm.joblib",
+      "validation_accuracy": 0.66,
+      "validation_brier_score": 0.21245179328105684,
+      "validation_roc_auc": 0.7233706666666666
+    },
+    {
+      "best_params": {
+        "classifier__max_depth": 20,
+        "classifier__max_features": "sqrt",
+        "classifier__min_samples_leaf": 8,
+        "classifier__n_estimators": 251
+      },
+      "cv_mean": 0.6708602736880372,
+      "cv_sd": 0.007819161505100558,
+      "feature_count": 1024,
+      "feature_set": "pixel",
+      "key": "pixel_rf",
+      "model": "rf",
+      "model_path": "artifacts/r2_fast_rf_t4/models/pixel_rf.joblib",
+      "validation_accuracy": 0.6666666666666666,
+      "validation_brier_score": 0.2086232310046191,
+      "validation_roc_auc": 0.7504711111111111
+    },
+    {
+      "best_params": {
+        "classifier__colsample_bytree": 0.5780093202212182,
+        "classifier__learning_rate": 0.055238410897498764,
+        "classifier__max_depth": 4,
+        "classifier__n_estimators": 658,
+        "classifier__subsample": 0.9464704583099741
+      },
+      "cv_mean": 0.6685710478211812,
+      "cv_sd": 0.007059713969988235,
+      "feature_count": 1024,
+      "feature_set": "pixel",
+      "key": "pixel_xgb",
+      "model": "xgb",
+      "model_path": "artifacts/r2_fast_rf_t4/models/pixel_xgb.joblib",
+      "validation_accuracy": 0.6733333333333333,
+      "validation_brier_score": 0.19950531207772645,
+      "validation_roc_auc": 0.7628302222222222
+    }
+  ],
+  "primary_model": {
+    "artifact_key": "frequency_svm",
+    "config_file": "/content/ai-image-fft-detector/config_r2_fast_rf_t4.yaml",
+    "config_sha256": "46dbd2c248195aae6eef02a2219a56747090b4bb5f88e3cfb372ced68515766f",
+    "feature_batches": {
+      "train": [
+        {
+          "path": "train/batch_00000.parquet",
+          "sha256": "4f6966fc404047b3cfdf6a4f191c45e498fda1a04fc2aa02cfab5ea9b1932c2e"
+        },
+        {
+          "path": "train/batch_00001.parquet",
+          "sha256": "746b042fcb4d5ce2eb0528ebc859807045d080c1ff5eac30b6c11f0645244583"
+        },
+        {
+          "path": "train/batch_00002.parquet",
+          "sha256": "d7862aab00edb63fab69c5d3a1050866ad3c2331769c098893a67d0c8d578f5c"
+        },
+        {
+          "path": "train/batch_00003.parquet",
+          "sha256": "9fb6acf73a0ec458415463d76a75a8a439a1efcb9a6403227b209c3598da6483"
+        },
+        {
+          "path": "train/batch_00004.parquet",
+          "sha256": "5789fa0613f5857ac29a8fed494a2ed68ef298aa276a796b6045130fc12282ce"
+        },
+        {
+          "path": "train/batch_00005.parquet",
+          "sha256": "c4f8ce16f7222b803b475446ae7242c249384b1c4ff349c727cae67208a344b2"
+        },
+        {
+          "path": "train/batch_00006.parquet",
+          "sha256": "f48534d7f72ce4dfdbed6a95850a15bf0c277a8b530843ddab4904e01244d5e9"
+        }
+      ],
+      "val": [
+        {
+          "path": "val/batch_00000.parquet",
+          "sha256": "54ecb64986fce38616089b394c8e8abfa1d06b2b411e55d14bcfb89e323524e9"
+        },
+        {
+          "path": "val/batch_00001.parquet",
+          "sha256": "066195f710e6fbef9565a622f3fb7385980b7d7ab9b8896537aa36e7b5146461"
+        }
+      ]
+    },
+    "feature_config_sha256": "ac92656ca11539bf8aaa7c6c89d9851ddf006ed4fc514a99ba6b2e9bae24d7d6",
+    "feature_set": "frequency",
+    "model": "svm",
+    "selection_metric": "validation_accuracy",
+    "splits_sha256": "1e823b5df253951bc2a7221b618fc7c0e5716f85066d509a3d9442c56ccfef93",
+    "tie_rule": "highest validation accuracy; ties follow ['svm', 'rf', 'xgb']",
+    "validation_accuracy": 0.8066666666666666
+  },
+  "scoring": "accuracy",
+  "search_iterations_per_model": 10,
+  "seed": 42,
+  "splits_sha256": "1e823b5df253951bc2a7221b618fc7c0e5716f85066d509a3d9442c56ccfef93",
+  "test_features_read": false,
+  "train_rows": 3500,
+  "training_profile": "R2-fast-rf-t4-user-approved-2026-10-31",
+  "validation_rows": 750,
+  "versions": {
+    "joblib": "1.6.0",
+    "numpy": "2.4.6",
+    "python": "3.13.16",
+    "scikit_learn": "1.9.1",
+    "xgboost": "3.2.0"
+  }
+}

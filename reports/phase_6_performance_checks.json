@@ -3,8 +3,8 @@
   "phase": 6,
   "task": "approved performance amendment",
   "local_full_tests": {
-    "passed": 194,
-    "seconds": 68.98,
+    "passed": 204,
+    "seconds": 74.56,
     "outside_windows_sandbox": true
   },
   "local_followup_guard_tests": {
@@ -35,7 +35,7 @@
     "limitation": "one sampled candidate, not a full-search ETA"
   },
   "live_run": {
-    "status": "started_completion_pending",
+    "status": "superseded_by_user_approved_narrower_rf_run",
     "runner_pid": 7238,
     "started_utc": "2026-10-31T08:58:07.838561+00:00",
     "config": "config_r2_fast_t4.yaml",
@@ -50,5 +50,19 @@
   "test_features_read_by_this_task": false,
   "freeze_or_evaluation_started": false,
   "phase7_authorized": false,
-  "supervisor_signoff": "unverified"
+  "supervisor_signoff": "unverified",
+  "final_run": {
+    "status": "completed_and_independently_verified",
+    "profile": "R2-fast-rf-t4-user-approved-2026-10-31",
+    "config_sha256": "46dbd2c248195aae6eef02a2219a56747090b4bb5f88e3cfb372ced68515766f",
+    "checkpoint_contract_sha256": "eb2767373ddc9b1e140a25162fe8b2164b12eea9436f2260fc1c67aa4bf666e1",
+    "training_started_utc": "2026-10-31T09:35:26.003141+00:00",
+    "training_completed_utc": "2026-10-31T09:45:09.399965+00:00",
+    "training_elapsed_seconds": 583.396824,
+    "overall_elapsed_seconds": 2821.561404,
+    "primary_model": "frequency_svm",
+    "primary_validation_accuracy": 0.8066666666666666,
+    "drive_backup": "/content/drive/MyDrive/aidetect/r2/review_backup/r2_fast_rf_t4_training_20261031T093525Z",
+    "completion_record_sha256": "5eb86a77101a2fdd7afc0967b3cf1cd388781415236782f6deb4549289296025"
+  }
 }

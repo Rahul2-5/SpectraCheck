@@ -1,3 +1,5 @@
+> Latest verified execution (31 October 2026): R2 Phase 6 training is complete under the explicitly approved RF/T4 profile, with all six model metrics reproduced and Drive backups verified. See [the final completion report](phase_6_fast_rf_t4_report.md) and `phase_6_fast_rf_t4_checks.json`. The original full-budget run below is historical and is not represented as completed. Test values remain sealed; Phase 7 is unauthorized.
+
 # Phase 6 report — training and model selection
 
 R2 execution update (31 October 2026): Phase 5 is verified complete, and authorized Phase 6 training has started in live Colab with `config_r2.yaml`. Completion, metrics and primary-model selection remain pending. See [phase_6_r2_report.md](phase_6_r2_report.md) for the actual launch record and Drive log path. Do not infer Phase 7 authorization.

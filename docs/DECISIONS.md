@@ -14,8 +14,10 @@ code/environment/input/fold provenance, and reuses only completed identical SVM/
 XGBoost pipelines plus the unaffected feature choice. Both RF searches restart
 under the revised ranges; no RF model/candidate is reused. Old checkpoints and
 records remain intact. New outputs/checkpoints have separate roots. Synthetic
-migration/runtime checks: 18 passed in 12.69s. Real migration/completion must be
-verified separately. Test values remain sealed; no Phase 7 authorization.
+migration/runtime checks: 18 passed in 12.69s. Real migration and all six models
+subsequently completed and passed independent verification at 15:15:25 IST;
+see `../reports/phase_6_fast_rf_t4_report.md`. Full local suite: 204 passed in
+74.56s. Test values remain sealed; no Phase 7 authorization.
 
 ## 31 October 2026 - Faster CPU/T4 execution approved by user
 

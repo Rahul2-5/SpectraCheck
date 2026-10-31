@@ -1,0 +1,14 @@
+{
+  "checkpoint_dir": "/content/drive/MyDrive/aidetect/r2/r2_fast_rf_t4_phase6_checkpoints",
+  "completed_utc": "2026-10-31T09:45:09.399965+00:00",
+  "config_sha256": "46dbd2c248195aae6eef02a2219a56747090b4bb5f88e3cfb372ced68515766f",
+  "feature_config_sha256": "ac92656ca11539bf8aaa7c6c89d9851ddf006ed4fc514a99ba6b2e9bae24d7d6",
+  "phase5_record_sha256": "1c685da37bcd768f99374d1b13e590a542b2531617198507234b7b5f579e7c66",
+  "pid": 17101,
+  "profile": "R2-fast-rf-t4-user-approved-2026-10-31",
+  "review_backup": "/content/drive/MyDrive/aidetect/r2/review_backup/r2_fast_rf_t4_training_20261031T093525Z",
+  "splits_sha256": "1e823b5df253951bc2a7221b618fc7c0e5716f85066d509a3d9442c56ccfef93",
+  "started_utc": "2026-10-31T09:35:26.003141+00:00",
+  "status": "completed",
+  "test_features_read": false
+}

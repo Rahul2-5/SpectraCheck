@@ -1,0 +1,12 @@
+{
+  "reused_models": [
+    "frequency_svm",
+    "frequency_xgb",
+    "pixel_svm"
+  ],
+  "rf_models_and_candidates_reused": false,
+  "source_config_sha256": "ca5ef99bd323928374356bf13e0ceff9cec729d3336bb92055082a633048e9a5",
+  "source_contract_sha256": "141960dbe64eb5b59eae1763b36c90b2dc992243c86e781426a7cf277359b3b4",
+  "source_manifest_sha256": "f28466df2d90492abb1033472aab9e58c5587c8f696a03b11430c173b5c54fa0",
+  "test_features_read": false
+}

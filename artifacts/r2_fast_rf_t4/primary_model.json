@@ -1,0 +1,54 @@
+{
+  "artifact_key": "frequency_svm",
+  "config_file": "/content/ai-image-fft-detector/config_r2_fast_rf_t4.yaml",
+  "config_sha256": "46dbd2c248195aae6eef02a2219a56747090b4bb5f88e3cfb372ced68515766f",
+  "feature_batches": {
+    "train": [
+      {
+        "path": "train/batch_00000.parquet",
+        "sha256": "4f6966fc404047b3cfdf6a4f191c45e498fda1a04fc2aa02cfab5ea9b1932c2e"
+      },
+      {
+        "path": "train/batch_00001.parquet",
+        "sha256": "746b042fcb4d5ce2eb0528ebc859807045d080c1ff5eac30b6c11f0645244583"
+      },
+      {
+        "path": "train/batch_00002.parquet",
+        "sha256": "d7862aab00edb63fab69c5d3a1050866ad3c2331769c098893a67d0c8d578f5c"
+      },
+      {
+        "path": "train/batch_00003.parquet",
+        "sha256": "9fb6acf73a0ec458415463d76a75a8a439a1efcb9a6403227b209c3598da6483"
+      },
+      {
+        "path": "train/batch_00004.parquet",
+        "sha256": "5789fa0613f5857ac29a8fed494a2ed68ef298aa276a796b6045130fc12282ce"
+      },
+      {
+        "path": "train/batch_00005.parquet",
+        "sha256": "c4f8ce16f7222b803b475446ae7242c249384b1c4ff349c727cae67208a344b2"
+      },
+      {
+        "path": "train/batch_00006.parquet",
+        "sha256": "f48534d7f72ce4dfdbed6a95850a15bf0c277a8b530843ddab4904e01244d5e9"
+      }
+    ],
+    "val": [
+      {
+        "path": "val/batch_00000.parquet",
+        "sha256": "54ecb64986fce38616089b394c8e8abfa1d06b2b411e55d14bcfb89e323524e9"
+      },
+      {
+        "path": "val/batch_00001.parquet",
+        "sha256": "066195f710e6fbef9565a622f3fb7385980b7d7ab9b8896537aa36e7b5146461"
+      }
+    ]
+  },
+  "feature_config_sha256": "ac92656ca11539bf8aaa7c6c89d9851ddf006ed4fc514a99ba6b2e9bae24d7d6",
+  "feature_set": "frequency",
+  "model": "svm",
+  "selection_metric": "validation_accuracy",
+  "splits_sha256": "1e823b5df253951bc2a7221b618fc7c0e5716f85066d509a3d9442c56ccfef93",
+  "tie_rule": "highest validation accuracy; ties follow ['svm', 'rf', 'xgb']",
+  "validation_accuracy": 0.8066666666666666
+}

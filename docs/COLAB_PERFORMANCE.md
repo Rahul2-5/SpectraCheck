@@ -1,5 +1,20 @@
 # Faster Colab execution
 
+Latest T4 profile: **`config_r2_fast_rf_t4.yaml`**. After measuring an eight-minute
+pixel RF candidate in the first fast run, the user explicitly approved **100–300
+RF trees and max_features='sqrt'** for both feature sets. Other RF ranges and all
+SVM/XGBoost settings stay unchanged. This further narrows the original RF search;
+report it as a protocol amendment. Independent supervisor sign-off is unverified.
+The earlier fast CPU/T4 configs remain available as historical alternatives and
+can be substantially slower on pixel RF. Do not switch profiles after test access.
+
+For the active pre-test run, `scripts/migrate_fast_rf_checkpoints.py` verifies the
+exact parent contract and permits reuse of completed SVM/XGBoost pipelines and
+the unaffected feature choice only. Both RF searches start under the revised
+ranges; their old candidates/models are excluded. Old evidence stays intact.
+Migration requires a stopped original writer, separate output roots and a new
+checkpoint folder. Do not rerun migration or a completed training run.
+
 The user approved the fast training amendment on 31 October 2026. Use
 `notebooks/colab_fast_training.ipynb` after the normal Drive mount and pinned
 environment setup. The canonical runner also contains the opt-in fast section.
@@ -7,7 +22,7 @@ Run only the authorized section, never **Run all**.
 
 ## Phase 6
 
-Default: `config_r2_fast.yaml` on a **CPU** runtime. Optional:
+Original fast default: `config_r2_fast.yaml` on a **CPU** runtime. Optional:
 `config_r2_fast_t4.yaml` on a T4 runtime, after a timing comparison. The T4
 accelerates XGBoost only. RF and RBF SVM still use CPU. GPU allocation is not
 needed for any other implemented phase.

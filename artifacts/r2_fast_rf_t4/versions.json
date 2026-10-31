@@ -1,0 +1,7 @@
+{
+  "joblib": "1.6.0",
+  "numpy": "2.4.6",
+  "python": "3.13.16",
+  "scikit_learn": "1.9.1",
+  "xgboost": "3.2.0"
+}

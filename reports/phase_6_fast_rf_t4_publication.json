@@ -1,0 +1,31 @@
+{
+  "phase": 6,
+  "date": "2026-10-31",
+  "status": "completed_and_independently_verified",
+  "completion_record_sha256": "5eb86a77101a2fdd7afc0967b3cf1cd388781415236782f6deb4549289296025",
+  "review_archive_sha256": "065151c7b0a2ad0fcd2a5e0a6193556cdc55697cdca2f6d36149472e988cd108",
+  "local_full_tests": {
+    "passed": 204,
+    "seconds": 74.56,
+    "outside_windows_sandbox": true
+  },
+  "focused_amendment_tests": {
+    "passed": 18,
+    "seconds": 12.69
+  },
+  "local_pip_check": "passed",
+  "source_ci": {
+    "commit": "3e1149d2037f9261c06f6999a12dbda90d3ca942",
+    "run_id": 41189258815,
+    "frontend": "success",
+    "python_3_11": "success",
+    "python_3_13": "success"
+  },
+  "figures_visually_inspected": true,
+  "review_archive_members_verified": 20,
+  "source_images_or_feature_batches_downloaded": false,
+  "model_binaries_in_git": false,
+  "supervisor_signoff": "unverified",
+  "phase7_authorized": false,
+  "practical_target_agreement": "unverified"
+}
