@@ -113,3 +113,38 @@ def test_fast_profiles_preserve_original_feature_contract():
             assert cfg[key] == original[key]
         assert cfg["paths"]["features_root"] == original["paths"]["features_root"]
         assert cfg["paths"]["artifacts_root"] != original["paths"]["artifacts_root"]
+
+
+def test_timing_benchmark_reads_train_only(tmp_path):
+    from scripts.benchmark_training import benchmark
+    cfg = _cfg(tmp_path)
+    cfg["training"]["legacy_phase5_config_hashes"] = ["a" * 64]
+    _write_training_inputs(cfg, rows_per_class=12, feature_config_hash_override="a" * 64)
+    result = benchmark(cfg)
+    assert len(result["timings"]) == 6 and result["test_features_read"] is False
+    assert all(item["fit_rows"] == 16 for item in result["timings"])
+    assert all("accuracy" not in item and item["seconds"] >= 0 for item in result["timings"])
+
+
+def test_cuda_profile_rejects_silent_cpu_fallback(monkeypatch):
+    from aidetect.training_runtime import verify_cuda_device
+    import xgboost
+    class FakeXGB:
+        def __init__(self, **kwargs): pass
+        def fit(self, *args): return self
+        def get_booster(self): return self
+        def save_config(self): return json.dumps({"learner": {"generic_param": {"device": "cpu"}}})
+    monkeypatch.setattr(xgboost, "XGBClassifier", FakeXGB)
+    with pytest.raises(RuntimeError, match="fell back"):
+        verify_cuda_device({"training": {"search_space": {"xgb_fixed": {"device": "cuda"}}}})
+
+
+def test_preparation_rejects_changed_data_contract_before_accessing_drive(tmp_path):
+    from scripts.prepare_fast_training import prepare
+    root = Path(__file__).parents[1]
+    cfg = yaml.safe_load((root / "config_r2_fast.yaml").read_text())
+    cfg["image_size"] = 128
+    path = tmp_path / "invalid.yaml"
+    path.write_text(yaml.safe_dump(cfg))
+    with pytest.raises(ValueError, match="preserve R2 image_size"):
+        prepare(path)

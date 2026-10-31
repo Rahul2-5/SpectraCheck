@@ -44,7 +44,40 @@ utilization / 0 MiB. No train_models.py process was present. Original run record
 the current replacement runtime has no such job or completed local results.
 Its preserved log contains only an import warning. This does not establish the
 old run completed. No completed checkpoints were observed. Original evidence was
-left unchanged. New-profile live benchmark/start/completion are pending here.
+left unchanged. Fast-profile readiness passed in the same live Colab runtime. Focused Colab
+regressions: **51 passed, one optional bottleneck warning, in 31.47s**. TRAIN-only
+benchmark completed with exit 0; XGBoost's booster configuration verified
+`cuda:0` rather than silently falling back. Evidence directory:
+`aidetect/r2/review_backup/performance_benchmark_20261031T085542Z` (`timing.json`,
+`benchmark.log`, `pytest.txt`). One seeded candidate fitted 2,332 TRAIN rows:
+
+| Feature set / model | CPU seconds | T4 seconds |
+| --- | --- | --- |
+| Frequency SVM | 0.621 | CPU only |
+| Frequency RF | 2.567 | CPU only |
+| Frequency XGBoost | 1.170 | 0.478 |
+| Pixel SVM | 2.399 | CPU only |
+| Pixel RF | 11.950 | CPU only |
+| Pixel XGBoost | 23.816 | 2.390 |
+
+These are representative individual fit timings, not full-search speedups or
+accuracy measurements. Because the existing T4 accelerated XGBoost, selected the
+approved T4 profile for this live run; CPU remains the default downloadable profile.
+The live Phase 6 readiness/launch/status cells now use the fast helpers. Fast runner
+PID **7238** started `2026-10-31T08:58:07.838561+00:00` (**14:28 IST**), explicitly
+using `config_r2_fast_t4.yaml`. Its config digest is
+`ca5ef99bd323928374356bf13e0ceff9cec729d3336bb92055082a633048e9a5`; original
+feature config/split hashes matched reviewed R2 evidence. Verified the worker
+remained active and checkpoint status reached `feature_selection` at
+`08:58:14.959139Z`, test_features_read=false. Drive checkpoints:
+`aidetect/r2/r2_fast_t4_phase6_checkpoints`; independent runner backup/log:
+`aidetect/r2/review_backup/r2_fast_t4_training_20261031T085807Z`. Original record
+and original config were not overwritten. Research completion remains pending.
+
+Additional local guard/benchmark tests after the full suite: **11 passed in 7.34s**
+(includes three added cases for TRAIN-only benchmark, CUDA fallback rejection and
+changed-profile rejection before Drive access). No source behavior changed after
+the 194-test full regression. No new dependency or installed library pin changed.
 
 ## Limitations / stop
 
