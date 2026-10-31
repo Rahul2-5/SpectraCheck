@@ -14,7 +14,13 @@ from typing import Any
 import pandas as pd
 import pyarrow.parquet as pq
 
-from aidetect.io_utils import config_hash, sha256_of_file
+from aidetect.io_utils import (
+    config_hash,
+    resolve_project_path,
+    sha256_of_file,
+    stable_json_bytes,
+)
+from aidetect.phase7_config import DEFAULT_PHASE7_CONFIG_NAME
 
 
 _MODEL_KEYS = tuple(
@@ -52,8 +58,7 @@ def _repo_root(path: str | Path | None = None) -> Path:
 
 
 def _resolve(repo_root: Path, value: str | Path) -> Path:
-    path = Path(value)
-    return path.resolve() if path.is_absolute() else (repo_root / path).resolve()
+    return resolve_project_path(repo_root, value)
 
 
 def _relative(repo_root: Path, path: Path, label: str) -> str:
@@ -284,10 +289,10 @@ def _collect_inputs(
     cfg: dict[str, Any], *, config_file: str | Path, repo_root: Path
 ) -> tuple[dict[str, str], list[dict[str, str]], dict[str, Any]]:
     config_path = _resolve(repo_root, config_file)
-    _relative(repo_root, config_path, "config.yaml")
+    _relative(repo_root, config_path, "research configuration")
     paths_cfg = cfg.get("paths", {})
     if not isinstance(paths_cfg, dict):
-        raise ValueError("config.yaml paths must be a mapping")
+        raise ValueError("Configuration paths must be a mapping")
     artifacts_root = _resolve(repo_root, paths_cfg.get("artifacts_root", "artifacts"))
     reports_root = _resolve(repo_root, paths_cfg.get("reports_root", "reports"))
     data_root = _resolve(repo_root, paths_cfg.get("data_root", "data"))
@@ -421,7 +426,7 @@ def _collect_inputs(
 def freeze_phase7(
     cfg: dict[str, Any],
     *,
-    config_file: str | Path = "config.yaml",
+    config_file: str | Path = DEFAULT_PHASE7_CONFIG_NAME,
     repo_root: str | Path | None = None,
 ) -> dict[str, Any]:
     """Validate Phase 6 outputs and create a one-time freeze manifest.
@@ -469,7 +474,7 @@ def freeze_phase7(
         "sealed_test_batches": sealed_batches,
         "test_feature_values_read_during_freeze": False,
     }
-    payload = (json.dumps(lock, indent=2, sort_keys=True, allow_nan=False) + "\n").encode("utf-8")
+    payload = stable_json_bytes(lock)
     lock_path.parent.mkdir(parents=True, exist_ok=True)
     descriptor = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
     try:
@@ -486,7 +491,7 @@ def freeze_phase7(
 def verify_freeze_lock(
     cfg: dict[str, Any],
     *,
-    config_file: str | Path = "config.yaml",
+    config_file: str | Path = DEFAULT_PHASE7_CONFIG_NAME,
     repo_root: str | Path | None = None,
     require_committed_lock: bool = True,
 ) -> tuple[dict[str, Any], Path]:

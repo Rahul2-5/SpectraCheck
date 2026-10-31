@@ -197,11 +197,17 @@ The local implementation is in `src/aidetect/freeze.py`,
 the protocol; no real test set has been opened and no research result is
 recorded in this checkout.
 
+The completed R2 Phase 6 run uses `config_r2_fast_rf_t4.yaml` (the reviewed
+configuration hash is recorded in its Phase 6 artifacts), with artifacts under
+`artifacts/r2_fast_rf_t4/` and reports under `reports/r2_fast_rf_t4/`. Always
+select that configuration explicitly for this run; the Phase 7 commands do not
+silently fall back to `config.yaml`.
+
 Before running Phase 7 in Colab, review the real Phase 6 results and models,
-complete `reports/practical_target.md`, and commit the Phase 6 outputs and
-reviewed decision on `main`. The Phase 7 notebook copies the six ignored model
-files to Drive immediately after training, with a SHA-256 manifest, and can
-restore them after a Colab runtime restart. The freeze command requires a clean `main` tree,
+complete `reports/r2_fast_rf_t4/practical_target.md`, and commit the Phase 6
+outputs and reviewed decision on `main`. The Phase 7 notebook can restore the
+six ignored model files only from the exact reviewed Drive backup, checked
+against `reports/phase_6_fast_rf_t4_backup_hashes.json`. The freeze command requires a clean `main` tree,
 the verified split digest, all six trained models, compatible Phase 6
 provenance, and the completed target. It locks the config, split, package and
 script sources, selection records, models, versions, target, and raw SHA-256
@@ -209,25 +215,30 @@ digests of the sealed Parquet files. Freeze hashes the test files as bytes; it
 does not parse test rows or feature values.
 
 ```text
-python scripts/freeze.py
+python scripts/freeze.py --config config_r2_fast_rf_t4.yaml
 ```
 
-Review and commit/push `artifacts/FREEZE.lock` to `main` before test access. On
-the resulting clean checkout, run the evaluator once:
+Review and commit/push `artifacts/r2_fast_rf_t4/FREEZE.lock` to `main` before
+test access. On the resulting clean checkout, run the evaluator once:
 
 ```text
-python scripts/evaluate_test.py
+python scripts/evaluate_test.py --config config_r2_fast_rf_t4.yaml
 ```
 
 The evaluator rechecks every frozen hash, creates
-`artifacts/EVALUATION_STARTED.json` before loading any sealed test rows, then
+`artifacts/r2_fast_rf_t4/EVALUATION_STARTED.json` before loading any sealed test rows, then
 writes six models' metrics, exact accuracy confidence intervals, preregistered
-tests and decisions to `reports/results.json` and `reports/results.md`, plus
-per-image predictions to `reports/test_predictions.csv`. If it fails after
+tests and decisions to `reports/r2_fast_rf_t4/results.json` and
+`reports/r2_fast_rf_t4/results.md`, plus per-image predictions to
+`reports/r2_fast_rf_t4/test_predictions.csv`. If it fails after
 creating the marker, do not rerun it; preserve the marker and ask the supervisor
 how to proceed. After a successful run, check accuracy against the confusion
 matrix and commit/push the result files to `main`. Later analyses must be
 labeled exploratory.
+
+Phase 7 JSON artifacts retain the existing sorted, indented schema and UTF-8
+encoding; their trailing newline is written explicitly as LF so the byte hash
+does not vary between Windows and Linux.
 
 ## Phase 1: collect images in Colab
 

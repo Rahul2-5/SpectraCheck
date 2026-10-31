@@ -26,7 +26,15 @@ from sklearn.metrics import (
 
 from aidetect.feature_extraction import read_feature_batches
 from aidetect.freeze import verify_freeze_lock
-from aidetect.io_utils import config_hash, sha256_of_file
+from aidetect.io_utils import (
+    config_hash,
+    project_relative_path,
+    resolve_project_path,
+    sha256_of_file,
+    stable_json_bytes,
+    write_json,
+)
+from aidetect.phase7_config import DEFAULT_PHASE7_CONFIG_NAME
 from aidetect.stats_tests import run_hypothesis_tests
 from aidetect.train import _validate_batch_metadata, make_frequency_matrix, make_pixel_matrix
 
@@ -41,7 +49,7 @@ def _utc_now() -> str:
 
 def _write_json_exclusive(path: Path, value: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    payload = (json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n").encode("utf-8")
+    payload = stable_json_bytes(value)
     descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
     with os.fdopen(descriptor, "wb") as stream:
         stream.write(payload)
@@ -50,8 +58,7 @@ def _write_json_exclusive(path: Path, value: dict[str, Any]) -> None:
 
 
 def _project_path(repo_root: Path, value: str | Path) -> Path:
-    path = Path(value)
-    return path.resolve() if path.is_absolute() else (repo_root / path).resolve()
+    return resolve_project_path(repo_root, value)
 
 
 def _check_test_rows(
@@ -140,7 +147,9 @@ def _model_metrics(y_true: np.ndarray, predicted: np.ndarray, probability: np.nd
     }
 
 
-def _format_results_markdown(result: dict[str, Any]) -> str:
+def _format_results_markdown(
+    result: dict[str, Any], practical_target_path: str = "reports/practical_target.md"
+) -> str:
     tests = result["hypothesis_tests"]
     h1 = tests["H1"]
     h1b = tests["H1b"]
@@ -241,7 +250,7 @@ def _format_results_markdown(result: dict[str, Any]) -> str:
             "",
             "## Practical-use target",
             "",
-            f"The team-agreed minimum validation accuracy was {practical['minimum_validation_accuracy']:.4f}; its rationale and agreement date are frozen in `reports/practical_target.md`.",
+            f"The team-agreed minimum validation accuracy was {practical['minimum_validation_accuracy']:.4f}; its rationale and agreement date are frozen in `{practical_target_path}`.",
             f"The primary model's held-out accuracy was {practical['primary_test_accuracy']:.4f}; its point estimate {'meets' if practical['primary_test_accuracy_meets_target'] else 'does not meet'} that target. Statistical significance and practical usefulness are separate decisions.",
             "",
             "No threshold, model, or analysis choice was changed after opening the test set. Any follow-up analysis must be labeled exploratory.",
@@ -254,7 +263,7 @@ def _format_results_markdown(result: dict[str, Any]) -> str:
 def evaluate_test_once(
     cfg: dict[str, Any],
     *,
-    config_file: str | Path = "config.yaml",
+    config_file: str | Path = DEFAULT_PHASE7_CONFIG_NAME,
     repo_root: str | Path | None = None,
 ) -> dict[str, Any]:
     """Verify the committed freeze, then consume sealed test features once."""
@@ -402,7 +411,7 @@ def evaluate_test_once(
                 "joblib": joblib.__version__,
             },
         },
-        "predictions_path": "reports/test_predictions.csv",
+        "predictions_path": project_relative_path(root, output_paths[2]),
         "split_file_sha256": sha256_of_file(data_root / "splits.csv"),
         "report_note": "Any analyses after this single evaluation are exploratory.",
     }
@@ -410,7 +419,9 @@ def evaluate_test_once(
     predictions = pd.concat(prediction_rows, ignore_index=True)
     predictions.to_csv(output_paths[2], index=False, lineterminator="\n")
     _write_json_exclusive(output_paths[0], record)
-    markdown = _format_results_markdown(record)
+    markdown = _format_results_markdown(
+        record, project_relative_path(root, reports_root / "practical_target.md")
+    )
     descriptor = os.open(output_paths[1], os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o644)
     with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as stream:
         stream.write(markdown)
@@ -422,7 +433,7 @@ def evaluate_test_once(
     marker["results_sha256"] = sha256_of_file(output_paths[0])
     marker["predictions_sha256"] = sha256_of_file(output_paths[2])
     marker["report_sha256"] = sha256_of_file(output_paths[1])
-    marker_path.write_text(json.dumps(marker, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_json(marker_path, marker)
     return record
 
 
