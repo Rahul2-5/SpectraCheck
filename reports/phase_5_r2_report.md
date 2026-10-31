@@ -1,5 +1,17 @@
 # R2 Phase 5 continuation — 30 October 2026
 
+## Verified completion — 31 October 2026
+
+**R2 Phase 5 completed in the new account's live Colab session.** All 3,500 train rows (seven batches) and 750 validation rows (two batches) were verified and reused after original/canonical source integrity checks. Sealed test extraction returned 750 rows in two batches: batch 0 was verified/reused; batch 1 wrote its remaining 250 rows in **136.040373 seconds**. The CLI's 0.0 skipped timings are placeholders, not measured source-verification time.
+
+Final checks confirmed exact batch counts/row counts, current config and immutable split metadata, ordered batch-ID digests, train/validation IDs/labels/groups, finite train/validation numeric values, 1,024 pixel features and 64 RAPSD rings. Test inspection was limited to Parquet metadata. The official test reader raised the expected `PermissionError`; no test feature values were loaded. Frozen split SHA-256 remained `1e823b5df253951bc2a7221b618fc7c0e5716f85066d509a3d9442c56ccfef93` and config SHA-256 remained `ac92656ca11539bf8aaa7c6c89d9851ddf006ed4fc514a99ba6b2e9bae24d7d6`.
+
+Fresh Colab focused suite: **29 passed, 1 warning in 5.19s**, exit 0. The warning concerns the host's optional bottleneck 1.4.2 versus pandas' recommended >=1.5.0; no dependency pin was changed or test requirement bypassed. Installation host conflicts remain distinct from passing research tests.
+
+The actual checksummed JSON, extraction logs, pytest output and SHA-256 manifest are saved under `/content/drive/MyDrive/aidetect/r2/review_backup/phase_5_extraction_20261031T023230Z`. The review JSON SHA-256 is **`1c685da37bcd768f99374d1b13e590a542b2531617198507234b7b5f579e7c66`**. The local check record summarizes observations; its bytes are not represented as an identical copy of that Drive record.
+
+The user authorized starting Phase 6 after verification. Phase 6 passed readiness and started with the explicit R2 configuration; see `phase_6_r2_report.md`. This does not authorize freeze or held-out evaluation. The historical incomplete checkpoints below are superseded by this completion observation. R2 treated-input scope, original failed raw audit and unverified supervisor sign-off remain disclosed.
+
 ## New-account resume — 31 October 2026
 
 The user migrated Colab accounts and handed over the already mounted/installed session. Its installation output required a kernel restart; restarted before running Phase 5. Fresh Phase 5 preflight passed all four expected hashes, frozen counts, manifest joins and group checks against the shared Drive R2 folder. New review directory: `/content/drive/MyDrive/aidetect/r2/review_backup/phase_5_extraction_20261031T023230Z`.

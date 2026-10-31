@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-31",
+  "protocol": "R2",
+  "phase": 6,
+  "status": "running_completion_unverified",
+  "readiness_passed": true,
+  "config_hash": "ac92656ca11539bf8aaa7c6c89d9851ddf006ed4fc514a99ba6b2e9bae24d7d6",
+  "splits_sha256": "1e823b5df253951bc2a7221b618fc7c0e5716f85066d509a3d9442c56ccfef93",
+  "phase5_record_sha256": "1c685da37bcd768f99374d1b13e590a542b2531617198507234b7b5f579e7c66",
+  "started_utc": "2026-10-31T03:12:13.346953+00:00",
+  "remote_pid": 16432,
+  "command": ["/usr/bin/python3", "-u", "scripts/train_models.py", "--config", "/content/ai-image-fft-detector/config_r2.yaml"],
+  "drive_backup": "/content/drive/MyDrive/aidetect/r2/review_backup/phase_6_training_20261031T031201Z",
+  "prior_local_synthetic_tests": {"passed": 9, "seconds": 15.74},
+  "training_results_verified": false,
+  "freeze_created": false,
+  "evaluation_started": false,
+  "supervisor_signoff": "unverified"
+}

@@ -1,5 +1,7 @@
 # Phase 6 report — training and model selection
 
+R2 execution update (31 October 2026): Phase 5 is verified complete, and authorized Phase 6 training has started in live Colab with `config_r2.yaml`. Completion, metrics and primary-model selection remain pending. See [phase_6_r2_report.md](phase_6_r2_report.md) for the actual launch record and Drive log path. Do not infer Phase 7 authorization.
+
 Status: **Phase 6 implementation and local synthetic checks are complete. The real Colab training run, practical-use target agreement, and remote CI review remain pending.** No real-data score or trained research model was generated in this checkout.
 
 ## Done

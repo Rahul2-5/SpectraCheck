@@ -2,7 +2,7 @@
   "date": "2026-10-31",
   "phase": 5,
   "protocol": "R2",
-  "status": "running_after_account_migration",
+  "status": "completed",
   "authorization": "User explicitly requested continuation from Phase 5",
   "local_focused_tests": {
     "passed": 29,
@@ -10,7 +10,7 @@
   },
   "notebook_cells_parse": true,
   "live_preflight_pass_verified": true,
-  "real_extraction_complete_verified": false,
+  "real_extraction_complete_verified": true,
   "training_started_by_this_task": false,
   "freeze_created_by_this_task": false,
   "evaluation_started_by_this_task": false,
@@ -28,9 +28,38 @@
     "test": "interrupted; final completeness unverified"
   },
   "drive_backup": "/content/drive/MyDrive/aidetect/r2/review_backup/phase_5_extraction_20261031T023230Z",
-  "current_session_phase6_queued": false,
   "historical_blockers": [
     "Colab output JavaScript failed to load after reload",
     "Browser automation debugger unattached on reconnect"
-  ]
+  ],
+  "record_type": "observed_summary_of_Drive_evidence",
+  "review_record_sha256": "1c685da37bcd768f99374d1b13e590a542b2531617198507234b7b5f579e7c66",
+  "colab_tests": {
+    "passed": 29,
+    "warnings": 1,
+    "seconds": 5.19,
+    "exit_code": 0
+  },
+  "verified_batches": {
+    "train": {
+      "rows": 3500,
+      "batches": 7,
+      "all_numeric_finite": true
+    },
+    "val": {
+      "rows": 750,
+      "batches": 2,
+      "all_numeric_finite": true
+    },
+    "test": {
+      "rows": 750,
+      "batches": 2,
+      "inspection": "metadata_only"
+    }
+  },
+  "sealed_reader_denied": true,
+  "train_validation_ids_labels_groups_match": true,
+  "pixel_features": 1024,
+  "rapsd_rings": 64,
+  "phase6_subsequently_started": true
 }
