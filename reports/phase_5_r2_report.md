@@ -1,5 +1,13 @@
 # R2 Phase 5 continuation — 30 October 2026
 
+## New-account resume — 31 October 2026
+
+The user migrated Colab accounts and handed over the already mounted/installed session. Its installation output required a kernel restart; restarted before running Phase 5. Fresh Phase 5 preflight passed all four expected hashes, frozen counts, manifest joins and group checks against the shared Drive R2 folder. New review directory: `/content/drive/MyDrive/aidetect/r2/review_backup/phase_5_extraction_20261031T023230Z`.
+
+The previous session's completed extraction output reported train **3,500 rows / 7 batches** (2 reused, 5 written) and validation **750 rows / 2 batches** (both written). Newly written train batch seconds: 270.122657, 265.945187, 243.989718, 249.475290, 264.760337. Validation batch seconds: 264.673281 and 124.150743. Existing-batch CLI timings of 0.0 are placeholders and do not measure source-integrity verification time. Test extraction ended with `KeyboardInterrupt`; final verification and Phase 6 start were not observed.
+
+In the new session, resumed train/validation extraction to verify source bytes and existing batch provenance, then queued write-only sealed test extraction and final checks. No Phase 6 cell is queued here. Phase 5 remains **running, not verified complete**. The runtime allocation is a user-selected T4, but this extraction uses the existing CPU NumPy/Pillow implementation; no GPU algorithm/config was introduced. Installation reported host-package conflicts and pandas warned about the host's optional bottleneck version; fresh final research tests remain pending in the queued verification cell.
+
 ## Live resumption — 31 October 2026
 
 Browser/output access recovered. The fresh runtime lacked the project checkout; restored the configured `main` checkout without acquiring dataset images or recreating audit/splits. The Phase 5 preparation cell then passed all exact config, frozen-split, active-manifest and audit-result hash checks, exact class counts, complete manifest join and group separation. Evidence directory: `/content/drive/MyDrive/aidetect/r2/review_backup/phase_5_extraction_20261031T013553Z`.

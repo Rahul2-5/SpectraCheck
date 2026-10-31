@@ -1,17 +1,36 @@
 {
-  "date": "2026-10-30",
+  "date": "2026-10-31",
   "phase": 5,
   "protocol": "R2",
-  "status": "prepared_live_execution_unverified",
+  "status": "running_after_account_migration",
   "authorization": "User explicitly requested continuation from Phase 5",
-  "local_focused_tests": {"passed": 29, "seconds": 12.70},
+  "local_focused_tests": {
+    "passed": 29,
+    "seconds": 12.7
+  },
   "notebook_cells_parse": true,
-  "live_preflight_pass_verified": false,
+  "live_preflight_pass_verified": true,
   "real_extraction_complete_verified": false,
-  "observed_blockers": ["Colab output JavaScript failed to load after reload", "Browser automation debugger unattached on reconnect"],
   "training_started_by_this_task": false,
   "freeze_created_by_this_task": false,
   "evaluation_started_by_this_task": false,
   "test_feature_values_read_by_this_task": false,
-  "supervisor_signoff": "unverified"
+  "supervisor_signoff": "unverified",
+  "previous_session_extraction": {
+    "train": {
+      "rows": 3500,
+      "batches": 7
+    },
+    "val": {
+      "rows": 750,
+      "batches": 2
+    },
+    "test": "interrupted; final completeness unverified"
+  },
+  "drive_backup": "/content/drive/MyDrive/aidetect/r2/review_backup/phase_5_extraction_20261031T023230Z",
+  "current_session_phase6_queued": false,
+  "historical_blockers": [
+    "Colab output JavaScript failed to load after reload",
+    "Browser automation debugger unattached on reconnect"
+  ]
 }
