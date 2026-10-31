@@ -1,5 +1,13 @@
 # R2 Phase 5 continuation — 30 October 2026
 
+## Live resumption — 31 October 2026
+
+Browser/output access recovered. The fresh runtime lacked the project checkout; restored the configured `main` checkout without acquiring dataset images or recreating audit/splits. The Phase 5 preparation cell then passed all exact config, frozen-split, active-manifest and audit-result hash checks, exact class counts, complete manifest join and group separation. Evidence directory: `/content/drive/MyDrive/aidetect/r2/review_backup/phase_5_extraction_20261031T013553Z`.
+
+Train/validation extraction is running. Sealed test extraction and Phase 5 checks are queued behind it. The user explicitly requested verification and starting the next phase; R2 Phase 6 readiness and training have therefore been queued behind a required successful Phase 5 evidence record. At this checkpoint, extraction completion and actual Phase 6 start remain unverified. No freeze or evaluation is queued.
+
+The earlier browser failure below is historical. Local Phase 6 synthetic checks passed: `9 passed in 15.74s`. The R2 training notebook cells explicitly select `config_r2.yaml`, preserve the configured five shared folds and 30 trials per model, save a PID/start record and log to Drive, and back up/hash model and report files only after successful completion.
+
 Status: **Authorized and prepared; real extraction is not verified complete.**
 
 The user explicitly authorized continuation from Phase 5 in the running Colab session. Existing Phase 5 preparation failed after runtime variable loss: `PROJECT_DIR` was undefined, and another saved preparation attempt could not import `aidetect`. The live preparation cell was repaired to establish the project and source paths before importing the package. Colab then failed to load its output JavaScript, reporting possible expired Google access or blocked third-party cookies. Reloading did not restore usable output. Browser automation subsequently reported `Debugger unattached`, including on a reconnect attempt. No successful Phase 5 preflight or feature-extraction result was observed in this task.
