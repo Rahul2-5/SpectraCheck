@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 const health = { ready: false, feature_analysis_available: true, min_image_side: 256, max_upload_bytes: 10485760, disclaimer: 'Model score for one Stable Diffusion v1.5 dataset; not proof of authenticity; may be wrong on other generators, screenshots or compressed images.' };
+const demoNotice = 'Development demonstration only. This prediction is not an authorized Phase 7 research result.';
 const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a1ioAAAAASUVORK5CYII=', 'base64');
 
 test('desktop and mobile workspace remain accessible without a model', async ({ page }) => {
@@ -35,14 +36,17 @@ test('desktop and mobile workspace remain accessible without a model', async ({ 
 });
 
 test('analysis result, removal, and errors are usable with mocked synthetic responses', async ({ page }) => {
-  await page.route('**/api/health', route => route.fulfill({ json: { ...health, ready: true } }));
+  await page.route('**/api/health', route => route.fulfill({ json: { ...health, ready: true, demo_mode: true, demo_notice: demoNotice } }));
   // Synthetic UI response only; no scientific prediction is claimed by this test.
-  await page.route('**/api/analyze', route => route.fulfill({ json: { label: 'AI-generated', ai_probability: .72, warnings: [], spectrum_png: `data:image/png;base64,${png.toString('base64')}`, rapsd: { radius: [1, 64, 128], log_power: [3, 2, 1] } } }));
+  await page.route('**/api/analyze', route => route.fulfill({ json: { mode: 'development_demo', demo_mode: true, research_authorized: false, demo_notice: demoNotice, label: 'AI-generated', ai_probability: .72, model: 'frequency_svm', warnings: [], spectrum_png: `data:image/png;base64,${png.toString('base64')}`, rapsd: { radius: [1, 64, 128], log_power: [3, 2, 1] } } }));
   await page.goto('/');
   await page.getByLabel('Choose an image').setInputFiles({ name: 'synthetic-fixture.png', mimeType: 'image/png', buffer: png });
   await page.getByRole('button', { name: 'Analyze image' }).click();
   await expect(page.getByRole('heading', { name: 'AI-generated', exact: true })).toBeVisible();
   await expect(page.getByRole('meter')).toHaveAttribute('aria-valuenow', '72');
+  await expect(page.getByText('Model: frequency_svm')).toBeVisible();
+  await expect(page.getByText(demoNotice)).toHaveCount(0);
+  await expect(page.getByText('DEVELOPMENT DEMO')).toHaveCount(0);
   expect((await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze()).violations).toEqual([]);
   await page.getByRole('button', { name: 'Remove image' }).click();
   await expect(page.getByRole('meter')).toHaveCount(0);

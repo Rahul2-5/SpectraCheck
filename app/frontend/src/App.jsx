@@ -49,6 +49,7 @@ function Result({ result, busy }) {
   return <div className="result-content">
     <div className="verdict"><span className="eyebrow">MODEL CLASSIFICATION</span><h3>{result.label}</h3><p>The selected research model’s prediction for this image.</p></div>
     <div className="score-heading"><span>AI-generated probability</span><strong>{(result.ai_probability * 100).toFixed(1)}<small>%</small></strong></div>
+    <p className="model-name">Model: <code>{result.model ?? 'unreported'}</code></p>
     <div className="probability-track" role="meter" aria-label="AI-generated probability" aria-valuemin="0" aria-valuemax="100" aria-valuenow={result.ai_probability * 100}><span style={{ width: `${result.ai_probability * 100}%` }} /></div>
     <div className="score-endpoints"><span>Real</span><span>AI-generated</span></div>
     <p className="score-note">A model probability is not a measure of authenticity.</p>

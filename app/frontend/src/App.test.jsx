@@ -5,7 +5,9 @@ import userEvent from '@testing-library/user-event';
 import App, { DISCLAIMER, FEATURE_ONLY_NOTICE } from './App.jsx';
 
 const health = { ready: true, feature_analysis_available: true, min_image_side: 256, max_upload_bytes: 10485760, disclaimer: DISCLAIMER };
-const prediction = { label: 'AI-generated', prediction: 1, ai_probability: .72, warnings: [], spectrum_png: 'data:image/png;base64,AA==', rapsd: { radius: [1, 64, 128], log_power: [3, 2, 1] } };
+const prediction = { label: 'AI-generated', prediction: 1, ai_probability: .72, model: 'frequency_svm', warnings: [], spectrum_png: 'data:image/png;base64,AA==', rapsd: { radius: [1, 64, 128], log_power: [3, 2, 1] } };
+const demoNotice = 'Development demonstration only. This prediction is not an authorized Phase 7 research result.';
+const demoPrediction = { ...prediction, mode: 'development_demo', demo_mode: true, research_authorized: false, demo_notice: demoNotice };
 const featureAnalysis = { mode: 'feature_analysis', model_available: false, label: null, prediction: null, ai_probability: null, model: null, processed_size: 256, feature_analysis: { spectral_entropy: .4567, rapsd_ring_count: 3 }, warnings: [], spectrum_png: 'data:image/png;base64,AA==', rapsd: { radius: [1, 64, 128], log_power: [3, 2, 1] } };
 const response = data => ({ ok: true, json: async () => data });
 
@@ -38,8 +40,22 @@ describe('analysis workspace', () => {
     await userEvent.click(screen.getByRole('button', { name: /analyze image/i }));
     expect(await screen.findByRole('heading', { name: 'AI-generated' })).toBeInTheDocument();
     expect(screen.getByRole('meter')).toHaveAttribute('aria-valuenow', '72');
+    expect(screen.getByText('frequency_svm', { exact: true })).toBeInTheDocument();
     expect(fetcher.mock.calls[1][1].body).toBe(file);
     expect(screen.getByRole('img', { name: /radially averaged/i })).toBeInTheDocument();
+  });
+  it('renders development-demo metadata without a redundant prediction disclaimer', async () => {
+    const fetcher = vi.fn(async (url) => response(url.endsWith('health') ? { ...health, demo_mode: true, demo_notice: demoNotice } : demoPrediction));
+    vi.stubGlobal('fetch', fetcher);
+    render(<App />);
+    await waitFor(() => expect(screen.queryByText('Connecting to local service…')).not.toBeInTheDocument());
+    fireEvent.change(screen.getByLabelText('Choose an image'), { target: { files: [new File(['pixels'], 'photo.png', { type: 'image/png' })] } });
+    await userEvent.click(screen.getByRole('button', { name: /analyze image/i }));
+    expect(await screen.findByRole('heading', { name: 'AI-generated' })).toBeInTheDocument();
+    expect(screen.getByText('frequency_svm', { exact: true })).toBeInTheDocument();
+    expect(screen.getByRole('meter')).toBeInTheDocument();
+    expect(screen.queryByText(demoNotice)).not.toBeInTheDocument();
+    expect(screen.queryByText('DEVELOPMENT DEMO')).not.toBeInTheDocument();
   });
   it('rejects multiple or unsupported files and clears prior selection', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => response(health)));

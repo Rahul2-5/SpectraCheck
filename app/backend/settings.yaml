@@ -1,5 +1,7 @@
 # Serving settings stay separate from the frozen research configuration.
+research_config: config_r2_fast_rf_t4.yaml
 max_upload_bytes: 10485760
 max_image_pixels: 40000000
 allowed_formats: [JPEG, PNG, WEBP]
 frontend_dist: app/frontend/dist
+# Demo-only settings are supplied by scripts/run_demo.py and are never enabled here.

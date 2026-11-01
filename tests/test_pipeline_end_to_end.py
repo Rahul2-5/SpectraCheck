@@ -106,6 +106,7 @@ def test_generated_images_to_evaluation_and_api(tmp_path, monkeypatch):
     active = pd.read_csv(repo / "data/audit/active_manifest.csv", dtype={"id": str}).set_index("id")
     image_path = repo / "data" / active.loc[str(selected["id"]), "rel_path"]
     settings = load_config(PROJECT / "app/backend/settings.yaml")
+    settings["research_config"] = "config.yaml"
     service = InferenceService(repo, settings)
     client = TestClient(create_app(repo, service=service, settings=settings))
     response = client.post("/api/analyze", content=image_path.read_bytes())

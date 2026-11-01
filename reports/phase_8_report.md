@@ -1,6 +1,6 @@
 # Phase 8 report - React prototype and local inference API
 
-Status: **Software implemented and verified locally. Real model/evaluation review remains pending. Phase 9 is not started.**
+Status: **Software implemented and verified locally. An explicitly labelled development demo can load the verified Phase 6 model; authorized research serving and evaluation remain pending.**
 
 ## What changed, in easy words
 
@@ -10,8 +10,11 @@ the prediction, AI probability, frequency image, and radial power plot.
 
 React handles the interface. A Python service uses the same preparation and
 frequency calculations as the research pipeline. Images stay in memory and are
-not saved. The current checkout has no real model bundle, so the page clearly
-says the research model is not connected and leaves analysis disabled.
+not saved. The normal research service remains fail-closed because no reviewed
+`FREEZE.lock` exists. A separate `scripts/run_demo.py` workflow can load only
+the designated, hash-verified Phase 6 `frequency_svm` artifact for supervisor
+software demonstration; every response is labelled development-only and is not
+a research result.
 
 The user explicitly authorized Phase 8 code development on 28 October 2026 while
 keeping real-data checks pending. No training output, freeze lock, research
@@ -22,6 +25,7 @@ prediction, or Phase 7 sign-off was created or represented as real.
 - `app/frontend/`: React/Vite interface, responsive styles, SVG radial power plot, file preview, drag/drop, clear/reset, busy/error states, connection retry, study scope, version notices and the fixed disclaimer. Dependencies are exact-pinned with package-lock.json.
 - `app/backend/inference.py`: shared preprocessing/extraction and evaluation probability-column handling; validation-selected primary model and feature/config/split provenance checks; serving input hashes; version warnings; in-memory spectrum encoding. It never invokes the held-out evaluator or opens sealed batches/results.
 - `app/backend/main.py`: local FastAPI health and raw-binary analysis endpoints, bounded streaming, clear errors, local host restrictions, and compiled React serving. Raw streaming avoids multipart upload spooling to disk.
+- `app/backend/demo.py` and `scripts/run_demo.py`: explicit development-demo service and entry point that verify the designated Phase 6 model hash and R2 metadata without bypassing the production lock gate or reading test data.
 - `app/backend/settings.yaml`: app upload/pixel limits and frontend path, separate from the unchanged research config.
 - `tests/test_app_api.py`: synthetic frozen serving bundle tests, evaluation-path feature/probability parity, no file writes, bad uploads, unavailable/changed artifacts and version notices.
 - Frontend component tests: readiness, real response display, invalid/multiple files, API errors/retry and cancellation on removal.
@@ -93,9 +97,10 @@ The app source, API source, tests, lockfile, documentation, screenshots, and che
 record exist. Compiled frontend files are built locally under ignored
 `app/frontend/dist/`. The preview service binds to http://127.0.0.1:8000 only.
 
-No real models, freeze lock, evaluation marker, results, or saved user uploads
-were produced. The original research config and package/script source are
-unchanged, so Phase 6's recorded config hash remains historical/active.
+No freeze lock, evaluation marker, held-out results or saved user uploads were
+produced. The verified Phase 6 model is available locally for the explicitly
+labelled development demo only; the original research config and package/script
+source remain hash-checked by the production serving path.
 
 ## Checks for the team
 
@@ -104,6 +109,7 @@ research pipeline; the React demo runs locally.
 
 1. Complete/review the actual Phase 6/7 work. Restore the selected model from the verified Drive backup along with matching config/source, lock, feature choice, primary model and version records.
 2. Build the frontend and run `python -m uvicorn app.backend.main:app --host 127.0.0.1 --port 8000`. Open localhost:8000.
+   Before research authorization, use `python scripts/run_demo.py --host 127.0.0.1 --port 8000` for the labelled supervisor software demonstration instead. Never treat its outputs as research evidence.
 3. Analyze five reviewed images and compare probabilities with the appropriate saved evaluation results without rerunning the held-out evaluator or altering frozen inputs.
 4. Check a text file renamed .jpg, undersized image, unsupported file, too-large upload, offline API, long file name, replacement/removal during analysis and keyboard-only operation.
 5. On a physical phone, verify touch feedback, zoom, orientation and safe areas. This remains unverified here; use an explicitly authorized local-device setup if sharing the laptop service on a LAN.

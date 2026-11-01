@@ -3,6 +3,7 @@
 from io import BytesIO
 import json
 from pathlib import Path
+import shutil
 
 from fastapi.testclient import TestClient
 import joblib
@@ -15,10 +16,11 @@ import yaml
 
 from aidetect.evaluate import _positive_probabilities
 from aidetect.feature_extraction import _row_from_summary, summarize_preprocessed_image
-from aidetect.features import extract_frequency_features, power_spectrum, rapsd, spectral_entropy
+from aidetect.features import extract_frequency_features, feature_names, power_spectrum, rapsd, spectral_entropy
 from aidetect.io_utils import config_hash, load_config, sha256_of_file
 from aidetect.preprocess import preprocess_image
 from aidetect.train import make_frequency_matrix
+from app.backend.demo import DEMO_NOTICE, DevelopmentDemoService
 from app.backend.inference import InferenceService, runtime_versions
 from app.backend.main import create_app
 
@@ -48,6 +50,7 @@ def bundle(tmp_path):
             "splits_sha256": "synthetic-split", "hashes": {p.relative_to(root).as_posix(): sha256_of_file(p) for p in files}}
     (artifacts / "FREEZE.lock").write_text(json.dumps(lock), encoding="utf-8")
     settings = load_config("app/backend/settings.yaml")
+    settings["research_config"] = "config.yaml"
     settings["max_upload_bytes"] = 50000
     stream = BytesIO()
     Image.fromarray(np.random.default_rng(42).integers(0, 256, (64, 64, 3), dtype=np.uint8)).save(stream, format="PNG")
@@ -77,6 +80,90 @@ def test_api_probability_and_features_match_evaluation_path(bundle):
     assert not (root / "artifacts/EVALUATION_STARTED.json").exists()
 
 
+def test_verified_r2_frequency_svm_serving_contract(tmp_path):
+    project = Path(__file__).parents[1]
+    root = tmp_path / "r2-serving"
+    for relative in (
+        "config_r2_fast_rf_t4.yaml",
+        "artifacts/r2_fast_rf_t4/feature_choice.json",
+        "artifacts/r2_fast_rf_t4/primary_model.json",
+        "artifacts/r2_fast_rf_t4/versions.json",
+        "artifacts/r2_fast_rf_t4/models/frequency_svm.joblib",
+    ):
+        destination = root / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(project / relative, destination)
+    for relative in ("preprocess.py", "features.py", "evaluate.py"):
+        destination = root / "src/aidetect" / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(project / "src/aidetect" / relative, destination)
+
+    config = load_config(root / "config_r2_fast_rf_t4.yaml")
+    primary = json.loads((root / "artifacts/r2_fast_rf_t4/primary_model.json").read_text())
+    choice = json.loads((root / "artifacts/r2_fast_rf_t4/feature_choice.json").read_text())
+    assert config_hash(config) == primary["config_sha256"]
+    assert primary["artifact_key"] == "frequency_svm"
+    assert (choice["r0"], choice["k_mad"]) == (120, 5)
+    assert config["preprocess"]["version"] == 2
+    assert config["preprocess"]["crop"] == "fixed_center_patch"
+    assert len(feature_names(config)) == 68
+
+    required = [
+        root / "config_r2_fast_rf_t4.yaml",
+        root / "artifacts/r2_fast_rf_t4/feature_choice.json",
+        root / "artifacts/r2_fast_rf_t4/primary_model.json",
+        root / "artifacts/r2_fast_rf_t4/versions.json",
+        root / "artifacts/r2_fast_rf_t4/models/frequency_svm.joblib",
+        *(root / "src/aidetect" / name for name in ("preprocess.py", "features.py", "evaluate.py")),
+    ]
+    lock = {
+        "schema_version": 1,
+        "config_sha256": config_hash(config),
+        "primary_model": "frequency_svm",
+        "splits_sha256": primary["splits_sha256"],
+        "hashes": {path.relative_to(root).as_posix(): sha256_of_file(path) for path in required},
+    }
+    artifacts = root / "artifacts/r2_fast_rf_t4"
+    (artifacts / "FREEZE.lock").write_text(json.dumps(lock), encoding="utf-8")
+
+    model = joblib.load(artifacts / "models/frequency_svm.joblib")
+    assert getattr(model, "n_features_in_", None) == 68
+    settings = load_config(project / "app/backend/settings.yaml")
+    service = InferenceService(root, settings)
+    stream = BytesIO()
+    Image.fromarray(np.random.default_rng(7).integers(0, 256, (256, 256, 3), dtype=np.uint8)).save(
+        stream, format="PNG"
+    )
+    response = TestClient(create_app(root, service=service, settings=settings)).post(
+        "/api/analyze", content=stream.getvalue()
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["model"] == "frequency_svm"
+    assert body["processed_size"] == 256
+    assert body["prediction"] in (0, 1)
+    assert 0.0 <= body["ai_probability"] <= 1.0
+    assert len(body["rapsd"]["log_power"]) == 64
+
+
+def test_explicit_demo_service_loads_verified_model_without_research_lock():
+    project = Path(__file__).parents[1]
+    settings = load_config(project / "app/backend/settings.yaml")
+    manifest = json.loads((project / "reports/phase_6_fast_rf_t4_backup_hashes.json").read_text())
+    settings.update(
+        demo_mode=True,
+        demo_model_path="artifacts/r2_fast_rf_t4/models/frequency_svm.joblib",
+        demo_model_sha256=manifest["artifacts/models/frequency_svm.joblib"],
+    )
+    service = DevelopmentDemoService(project, settings)
+    health = service.health()
+    assert health["ready"] is True
+    assert health["mode"] == "development_demo"
+    assert health["research_authorized"] is False
+    assert health["demo_notice"] == DEMO_NOTICE
+    assert not (project / "artifacts/r2_fast_rf_t4/FREEZE.lock").exists()
+
+
 @pytest.mark.parametrize("payload,code", [(b"not a picture.jpg", 422), (b"", 422), (b"a" * 50001, 413)], ids=["corrupt", "empty", "too-large"])
 def test_bad_uploads_return_clear_errors(bundle, payload, code):
     root, _, settings, service, _ = bundle
@@ -94,11 +181,15 @@ def test_small_and_unsupported_images(bundle):
         assert response.status_code == 422
 
 
-def test_missing_model_and_changed_inputs_fail_closed(bundle):
+def test_missing_or_changed_model_and_inputs_fail_closed(bundle):
     root, _, settings, service, payload = bundle
     client = TestClient(create_app(root, service=service, settings=settings))
     assert client.get("/api/health").json()["feature_analysis_available"] is True
-    (root / "artifacts/models/frequency_rf.joblib").write_bytes(b"changed model")
+    model_path = root / "artifacts/models/frequency_rf.joblib"
+    model_path.unlink()
+    health = client.get("/api/health").json()
+    assert health["ready"] is False and health["feature_analysis_available"] is True
+    model_path.write_bytes(b"changed model")
     health = client.get("/api/health").json()
     assert health["ready"] is False and health["feature_analysis_available"] is True
     response = client.post("/api/analyze", content=payload)

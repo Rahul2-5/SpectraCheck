@@ -89,6 +89,8 @@ h1 { font-size: clamp(30px, 3.35vw, 48px); font-weight: 480; letter-spacing: -1.
 .probability-track span { height: 100%; background: var(--blue); display: block; }
 .score-endpoints { display: flex; justify-content: space-between; font-size: 11px; color: #637089; margin-top: 8px; }
 .score-note { font-size: 10px; line-height: 1.8; color: var(--muted); margin-top: 14px; padding-bottom: 22px; border-bottom: 1px solid #edf0f5; }
+.model-name { color: #637089; font: 10px ui-monospace, monospace; margin-top: 10px; }
+.model-name code { color: #25324a; }
 .feature-notice { margin-top: 22px; background: #f2f5ff; color: #304b9f; }
 .feature-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; margin-top: 14px; }
 .feature-stats > div { display: grid; gap: 7px; padding: 13px 12px; border: 1px solid #e5e9f1; border-radius: 6px; background: #fbfcff; }

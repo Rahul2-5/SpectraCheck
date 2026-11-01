@@ -20,7 +20,30 @@ For frontend development, keep the API running and use a second terminal:
 npm.cmd --prefix app/frontend run dev
 ```
 
-Open http://127.0.0.1:5173. Vite proxies `/api` to the local Python service.
+Open http://127.0.0.1:5173. Vite proxies `/api` to the local Python service. To
+use a non-default demo port, set `SPECTRACHECK_API_TARGET`, for example:
+
+```powershell
+$env:SPECTRACHECK_API_TARGET = "http://127.0.0.1:8001"
+npm.cmd --prefix app/frontend run dev
+```
+
+## Supervisor development demonstration
+
+The normal `app.backend.main:app` service requires a reviewed `FREEZE.lock` and
+must remain unavailable until Phase 7 authorization. For a clearly separated
+local demonstration, run the explicit demo entry point instead:
+
+```powershell
+.\.venv\Scripts\python.exe scripts/run_demo.py --host 127.0.0.1 --port 8000
+```
+
+This path uses only the designated, hash-verified
+`artifacts/r2_fast_rf_t4/models/frequency_svm.joblib` with the R2 config and
+selection metadata. It does not read test data or create a freeze/evaluation
+artifact. The API and UI label every response **DEVELOPMENT DEMO ONLY - NOT
+RESEARCH EVIDENCE**. Do not copy demo predictions into Phase 7 or Phase 9
+results.
 
 ## Supplying the research model
 
@@ -85,7 +108,7 @@ a research model. Touch/keyboard feel and safe areas on physical phones remain
 a team check; desktop emulation is not evidence of real-device testing.
 # Approved R2 experiment
 
-For an R2 serving bundle, set `research_config: config_r2.yaml` in the local
+For an R2 serving bundle, use `research_config: config_r2_fast_rf_t4.yaml` in the local
 backend settings. All referenced config/artifacts must be inside the serving
 project and match the reviewed freeze. The default remains the historical
 `config.yaml`; it does not silently select a different model or experiment.
@@ -93,4 +116,6 @@ R2 upload inference and extraction both consume original bytes through
 `preprocess_image`, performing fixed-centre cropping and one JPEG generation.
 Never supply the diagnostic's encoded patches as training or serving originals.
 The UI scope note identifies fixed-centre-patch analysis. There is currently no
-real R2 model bundle; analysis availability does not imply a trained detector.
+reviewed R2 research serving bundle because `FREEZE.lock` is not present;
+analysis availability does not imply authorized research inference. Use the
+explicit development-demo command above for supervisor software review only.
